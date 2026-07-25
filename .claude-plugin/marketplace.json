@@ -21,6 +21,11 @@
       "name": "tdd-monorepo",
       "source": "./plugins/tdd-monorepo",
       "description": "モノレポ（Rails/RSpec backend + Vue/Vitest frontend）向け TDD ワークフロー自動化スキル（エコシステム自動判定）"
+    },
+    {
+      "name": "tdd-universal",
+      "source": "./plugins/tdd-universal",
+      "description": "任意の言語・テストフレームワーク向けの汎用 TDD ワークフロー自動化スキル（対話型 bootstrap で設定を構築）"
     }
   ]
 }

@@ -178,6 +178,6 @@ plugin 同梱の **テンプレ**（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/{f
 
 ## エラーハンドリング
 
-- `pyproject.toml` / `setup.py` / `Pipfile` / `requirements.txt` のいずれも存在しない → 「ここは Python プロジェクトではないようです。中断します」と提示して終了。
+- `pyproject.toml` / `setup.py` / `Pipfile` / `requirements.txt` のいずれも存在しない → 「ここは Python プロジェクトではないようです。中断します」と提示して終了。あわせて**汎用版 `tdd-universal` plugin**（任意の言語向け。対話型 bootstrap でスタックを聞き取って設定を構築）の利用を案内する。
 - 検出が極端に乏しい（tests/ 不在、pytest 未導入）→ 警告のみ出し、最小限の project-settings.md を生成（ユーザーが手動で埋める前提）。
 - 既存 `.claude/skills/_shared-tdd/` がある状態で `--force` 未指定 → 承認なしに上書きしてはいけない。

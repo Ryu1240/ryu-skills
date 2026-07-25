@@ -174,7 +174,7 @@ plugin 同梱の **テンプレ**（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/{f
 
 ## エラーハンドリング
 
-- `package.json` が存在しない → 「ここは JS/TS フロントエンドプロジェクトではないようです。中断します」と提示して終了。
+- `package.json` が存在しない → 「ここは JS/TS フロントエンドプロジェクトではないようです。中断します」と提示して終了。あわせて**汎用版 `tdd-universal` plugin**（任意の言語向け。対話型 bootstrap でスタックを聞き取って設定を構築）の利用を案内する。
 - Vue 以外（React/Svelte）を検出 → 「この plugin は Vue + Vitest 前提です。テストランナーが Vitest なら概ね流用できますが、コンポーネント検証の記述は手動調整が必要です」と警告のうえ続行可否を確認。
 - テストランナーが Vitest でない（Jest 等）→ 警告のみ出し、テスト実行コマンドを検出値で埋めて生成（ユーザーが手動で調整する前提）。
 - 既存 `.claude/skills/_shared-tdd/` がある状態で `--force` 未指定 → 承認なしに上書きしてはいけない。

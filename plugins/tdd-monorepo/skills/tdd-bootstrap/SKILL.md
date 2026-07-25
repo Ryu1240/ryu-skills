@@ -112,6 +112,6 @@ plugin 同梱の **テンプレ**（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/{f
 
 ## エラーハンドリング
 
-- backend も frontend も見つからない → 「モノレポの backend(Rails)/frontend(Vue) を特定できませんでした。中断します」と提示して終了。
+- backend も frontend も見つからない → 「モノレポの backend(Rails)/frontend(Vue) を特定できませんでした。中断します」と提示して終了。あわせて**汎用版 `tdd-universal` plugin**（任意の言語・構成向け。対話型 bootstrap でスタックを聞き取って設定を構築）の利用を案内する。
 - backend または frontend しか無い → 単体プラグイン（`tdd-rails` / `tdd-frontend`）の利用を案内しつつ、希望あれば片側のみで生成。
 - 既存 `.claude/skills/_shared-tdd/` がある状態で `--force` 未指定 → 承認なしに上書きしてはいけない。
