@@ -1,0 +1,6 @@
+{
+  "name": "tdd-universal",
+  "version": "0.1.0",
+  "description": "任意の言語・テストフレームワーク向けの汎用 TDD ワークフロー自動化スキル。bootstrap がリポを走査し、検出できない項目は対話ヒアリングで埋めて project-settings.md を構築する。専用プラグイン（tdd-rails / tdd-python / tdd-frontend / tdd-monorepo）が無いスタックはこれを使う。",
+  "author": { "name": "SC-Ryu1240" }
+}

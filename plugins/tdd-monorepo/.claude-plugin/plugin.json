@@ -1,0 +1,6 @@
+{
+  "name": "tdd-monorepo",
+  "version": "0.1.0",
+  "description": "モノレポ（Rails/RSpec backend + Vue/Vitest frontend）向け TDD ワークフロー自動化スキル。1 スキルセットで backend/frontend をエコシステム自動判定して回す。単体スタックの tdd-rails / tdd-frontend と同時有効化せず、モノレポではこれ 1 つを使う。",
+  "author": { "name": "SC-Ryu1240" }
+}
