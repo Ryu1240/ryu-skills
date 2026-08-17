@@ -22,7 +22,7 @@ Claude Code の plugin マーケットプレイスとして登録し、使いた
 
 ```text
 # 1. マーケットプレイスを追加（1 度だけ）
-/plugin marketplace add SC-Ryu1240/general-skills
+/plugin marketplace add Ryu1240/ryu-skills
 
 # 2. 使いたい plugin を導入
 /plugin install tdd-rails@general-skills      # Rails プロジェクト用

@@ -40,7 +40,7 @@
 ## インストール
 
 ```text
-/plugin marketplace add SC-Ryu1240/general-skills
+/plugin marketplace add Ryu1240/ryu-skills
 /plugin install tdd-universal@general-skills
 ```
 
