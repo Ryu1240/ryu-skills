@@ -26,7 +26,7 @@ Vue 3 + Vite + Vitest フロントエンド向けの TDD ワークフロー自�
 Claude Code のマーケットプレイス経由で導入します。
 
 ```text
-/plugin marketplace add SC-Ryu1240/general-skills
+/plugin marketplace add Ryu1240/ryu-skills
 /plugin install tdd-frontend@general-skills
 ```
 
