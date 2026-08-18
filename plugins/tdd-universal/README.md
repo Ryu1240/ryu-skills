@@ -48,17 +48,17 @@
 
 ## スキル一覧
 
-- **[tdd](tdd/SKILL.md)** — オーケストレーター。Plan→サイクル→Coverage Review→Optimize を統括（Notion 連携は任意）。Phase 0 で project-settings の未設定を検出し bootstrap を呼ぶ。
-- **[tdd-bootstrap](tdd-bootstrap/SKILL.md)** — **対話型**初回セットアップ。走査＋ヒアリングで `.claude/skills/_shared-tdd/` を生成（承認制）。言語検出表・ランナー別コマンド表を内蔵。
-- **[tdd-project-settings-update](tdd-project-settings-update/SKILL.md)** — 生成済み `project-settings.md` を自然言語指示で調整・追記・修正（diff 提案→承認→適用。コマンドは実在を裏取り）。
-- **[tdd-red](tdd-red/SKILL.md)** — Red。**既存テストの慣習を抽出**してから、失敗するテストを 1 本だけ書く。
-- **[tdd-green](tdd-green/SKILL.md)** — Green。テストを通す最小実装（既存実装の慣習も踏襲）。
-- **[tdd-refactor](tdd-refactor/SKILL.md)** — Refactor。重複除去・命名・責務分解・データアクセス効率・エラー処理の一貫性・lint をテスト緑のまま。
-- **[tdd-commit](tdd-commit/SKILL.md)** — Commit。1 サイクル分を pre-commit hook 準拠でコミットし、状態をアーカイブ（既存 `git log` の規約を優先）。
-- **[tdd-evacuator](tdd-evacuator/SKILL.md)** — リファクタ候補・テスト妥当性に加え、サイクル境界で次サイクルの追加テストを提案（読み取り専用・編集しない）。
-- **[tdd-coverage-review](tdd-coverage-review/SKILL.md)** — 公開インターフェイス × テストカテゴリ（境界値/空/異常系/外部依存失敗/認可/契約/冪等性）で不足を補完。
-- **[tdd-optimize](tdd-optimize/SKILL.md)** — テストの最適化（セットアップ巻き上げ・パラメータ化・アサーション集約）。独立性を担保し、検証できなかった項目は明記。
-- **[tdd-workflow-update](tdd-workflow-update/SKILL.md)** — 進行中ワークフロー JSON を自然言語で動的更新。
+- **[tdd](skills/tdd/SKILL.md)** — オーケストレーター。Plan→サイクル→Coverage Review→Optimize を統括（Notion 連携は任意）。Phase 0 で project-settings の未設定を検出し bootstrap を呼ぶ。
+- **[tdd-bootstrap](skills/tdd-bootstrap/SKILL.md)** — **対話型**初回セットアップ。走査＋ヒアリングで `.claude/skills/_shared-tdd/` を生成（承認制）。言語検出表・ランナー別コマンド表を内蔵。
+- **[tdd-project-settings-update](skills/tdd-project-settings-update/SKILL.md)** — 生成済み `project-settings.md` を自然言語指示で調整・追記・修正（diff 提案→承認→適用。コマンドは実在を裏取り）。
+- **[tdd-red](skills/tdd-red/SKILL.md)** — Red。**既存テストの慣習を抽出**してから、失敗するテストを 1 本だけ書く。
+- **[tdd-green](skills/tdd-green/SKILL.md)** — Green。テストを通す最小実装（既存実装の慣習も踏襲）。
+- **[tdd-refactor](skills/tdd-refactor/SKILL.md)** — Refactor。重複除去・命名・責務分解・データアクセス効率・エラー処理の一貫性・lint をテスト緑のまま。
+- **[tdd-commit](skills/tdd-commit/SKILL.md)** — Commit。1 サイクル分を pre-commit hook 準拠でコミットし、状態をアーカイブ（既存 `git log` の規約を優先）。
+- **[tdd-evacuator](skills/tdd-evacuator/SKILL.md)** — リファクタ候補・テスト妥当性に加え、サイクル境界で次サイクルの追加テストを提案（読み取り専用・編集しない）。
+- **[tdd-coverage-review](skills/tdd-coverage-review/SKILL.md)** — 公開インターフェイス × テストカテゴリ（境界値/空/異常系/外部依存失敗/認可/契約/冪等性）で不足を補完。
+- **[tdd-optimize](skills/tdd-optimize/SKILL.md)** — テストの最適化（セットアップ巻き上げ・パラメータ化・アサーション集約）。独立性を担保し、検証できなかった項目は明記。
+- **[tdd-workflow-update](skills/tdd-workflow-update/SKILL.md)** — 進行中ワークフロー JSON を自然言語で動的更新。
 
 ## 共通契約（`_shared-tdd/`）
 

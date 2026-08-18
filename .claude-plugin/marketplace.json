@@ -1,6 +1,8 @@
 {
   "name": "general-skills",
-  "owner": { "name": "SC-Ryu1240" },
+  "owner": {
+    "name": "SC-Ryu1240"
+  },
   "plugins": [
     {
       "name": "tdd-rails",
@@ -16,6 +18,11 @@
       "name": "tdd-frontend",
       "source": "./plugins/tdd-frontend",
       "description": "Vue 3 + Vite + Vitest 向け TDD ワークフロー自動化スキル"
+    },
+    {
+      "name": "tdd-node",
+      "source": "./plugins/tdd-node",
+      "description": "TypeScript / Node.js バックエンド（Vitest）向け TDD ワークフロー自動化スキル"
     },
     {
       "name": "tdd-monorepo",

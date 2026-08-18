@@ -23,7 +23,7 @@
 | lint / hook | Rubocop + husky/lint-staged | ESLint(+Prettier) + husky/lint-staged |
 | CI | 変更パスに応じ backend/frontend を自動実行 | 同左 |
 
-これらの前提は [`_shared-tdd/project-settings.md`](_shared-tdd/project-settings.md) に集約されています。**自分のモノレポに合わせてこのファイルを書き換えてください**（`/tdd-bootstrap` が backend/frontend パッケージを走査して自動生成します）。
+これらの前提は [`_shared-tdd/project-settings.md`](skills/_shared-tdd/project-settings.md) に集約されています。**自分のモノレポに合わせてこのファイルを書き換えてください**（`/tdd-bootstrap` が backend/frontend パッケージを走査して自動生成します）。
 
 ## インストール
 
@@ -38,17 +38,17 @@
 
 ## スキル一覧
 
-- **[tdd](tdd/SKILL.md)** — オーケストレーター。Phase 2 で backend/frontend を自動判定し、Plan→サイクル→Coverage Review→Optimize を統括（Notion 連携は任意）。
-- **[tdd-bootstrap](tdd-bootstrap/SKILL.md)** — 初回セットアップ。モノレポの backend/frontend パッケージを走査し、`.claude/skills/_shared-tdd/` にプロジェクト固有設定を生成（承認制）。
-- **[tdd-project-settings-update](tdd-project-settings-update/SKILL.md)** — 生成済み `project-settings.md` を自然言語指示で調整・追記・修正（diff 提案→承認→適用。手編集を潰さず、メモリ同期も提案）。
-- **[tdd-red](tdd-red/SKILL.md)** — Red。ecosystem に応じて失敗する RSpec / Vitest テストを 1 本だけ書く。
-- **[tdd-green](tdd-green/SKILL.md)** — Green。テストを通す最小実装（Rails or Vue/TS）。
-- **[tdd-refactor](tdd-refactor/SKILL.md)** — Refactor。backend=N+1/dependent/サービス抽出、frontend=composable 抽出/コンポーネント分割 をテスト緑のまま。
-- **[tdd-commit](tdd-commit/SKILL.md)** — Commit。1 サイクル分を husky/lint-staged 準拠でコミットし、状態をアーカイブ。
-- **[tdd-evacuator](tdd-evacuator/SKILL.md)** — リファクタ候補・テスト妥当性に加え、サイクル境界で次サイクルの追加テストを提案（読み取り専用・編集しない）。
-- **[tdd-coverage-review](tdd-coverage-review/SKILL.md)** — ecosystem 別の（対象 × テストカテゴリ）マトリクスで不足テストを補完。
-- **[tdd-optimize](tdd-optimize/SKILL.md)** — RSpec / Vitest テストの最適化（独立性を担保。承認後に適用）。
-- **[tdd-workflow-update](tdd-workflow-update/SKILL.md)** — 進行中ワークフロー JSON を自然言語で動的更新（`ecosystem` は保護）。
+- **[tdd](skills/tdd/SKILL.md)** — オーケストレーター。Phase 2 で backend/frontend を自動判定し、Plan→サイクル→Coverage Review→Optimize を統括（Notion 連携は任意）。
+- **[tdd-bootstrap](skills/tdd-bootstrap/SKILL.md)** — 初回セットアップ。モノレポの backend/frontend パッケージを走査し、`.claude/skills/_shared-tdd/` にプロジェクト固有設定を生成（承認制）。
+- **[tdd-project-settings-update](skills/tdd-project-settings-update/SKILL.md)** — 生成済み `project-settings.md` を自然言語指示で調整・追記・修正（diff 提案→承認→適用。手編集を潰さず、メモリ同期も提案）。
+- **[tdd-red](skills/tdd-red/SKILL.md)** — Red。ecosystem に応じて失敗する RSpec / Vitest テストを 1 本だけ書く。
+- **[tdd-green](skills/tdd-green/SKILL.md)** — Green。テストを通す最小実装（Rails or Vue/TS）。
+- **[tdd-refactor](skills/tdd-refactor/SKILL.md)** — Refactor。backend=N+1/dependent/サービス抽出、frontend=composable 抽出/コンポーネント分割 をテスト緑のまま。
+- **[tdd-commit](skills/tdd-commit/SKILL.md)** — Commit。1 サイクル分を husky/lint-staged 準拠でコミットし、状態をアーカイブ。
+- **[tdd-evacuator](skills/tdd-evacuator/SKILL.md)** — リファクタ候補・テスト妥当性に加え、サイクル境界で次サイクルの追加テストを提案（読み取り専用・編集しない）。
+- **[tdd-coverage-review](skills/tdd-coverage-review/SKILL.md)** — ecosystem 別の（対象 × テストカテゴリ）マトリクスで不足テストを補完。
+- **[tdd-optimize](skills/tdd-optimize/SKILL.md)** — RSpec / Vitest テストの最適化（独立性を担保。承認後に適用）。
+- **[tdd-workflow-update](skills/tdd-workflow-update/SKILL.md)** — 進行中ワークフロー JSON を自然言語で動的更新（`ecosystem` は保護）。
 
 ## 共通契約（`_shared-tdd/`）
 

@@ -18,7 +18,7 @@ Python + pytest + pydantic 向けの TDD ワークフロー自動化スキル群
 | Fixture | `tests/fixtures/*.json` + `load_json`（`tests/_helpers.py`） |
 | CI | CircleCI（デプロイのみ。PR 前に手動 pytest 必須） |
 
-これらの前提は [`_shared-tdd/project-settings.md`](_shared-tdd/project-settings.md) に集約されています。**自分のプロジェクトに合わせてこのファイルを書き換えてください。**
+これらの前提は [`_shared-tdd/project-settings.md`](skills/_shared-tdd/project-settings.md) に集約されています。**自分のプロジェクトに合わせてこのファイルを書き換えてください。**
 
 スキーマモデル（`schemas/task.py` の `Task` など）の roundtrip / validation テストと、CLI コマンド・storage 関数のロジックテストの両方を、1 サイクル = 1 テストで進める構成です。
 
@@ -37,18 +37,18 @@ plugin 同梱の `_shared-tdd/project-settings.md` は架空リポ `taskcli` を
 
 ## スキル一覧
 
-- **[tdd](tdd/SKILL.md)** — オーケストレーター。Plan→サイクル→Coverage Review→Optimize を統括（Notion 連携は任意）。Phase 0 で project-settings の有無を判定し、未生成なら tdd-bootstrap を呼ぶ。
-- **[tdd-bootstrap](tdd-bootstrap/SKILL.md)** — 初回セットアップ。Python プロジェクトを走査し、`.claude/skills/_shared-tdd/` にプロジェクト固有設定（`project-settings.md` + テンプレ 3 ファイル）を生成（承認制）。
-- **[tdd-project-settings-update](tdd-project-settings-update/SKILL.md)** — 生成済み `project-settings.md` を自然言語指示で調整・追記・修正（diff 提案→承認→適用。手編集を潰さず、メモリ同期も提案）。
-- **[tdd-red](tdd-red/SKILL.md)** — Red。失敗する pytest テストを 1 本だけ書く（schema roundtrip / logic / validation）。
-- **[tdd-green](tdd-green/SKILL.md)** — Green。テストを通す最小実装（`schemas/` の pydantic モデルや CLI コマンド等）。
-- **[tdd-refactor](tdd-refactor/SKILL.md)** — Refactor。挙動を変えずにコード品質を改善。
-- **[tdd-commit](tdd-commit/SKILL.md)** — Commit。1 サイクル分をコミットし、状態をアーカイブ。
-- **[tdd-evacuator](tdd-evacuator/SKILL.md)** — リファクタ候補・pytest テスト妥当性に加え、サイクル境界で次サイクルの追加テストを提案（読み取り専用・編集しない）。
-- **[tdd-coverage-review](tdd-coverage-review/SKILL.md)** — pydantic モデル/関数 × テストカテゴリのマトリクスで不足テストを補完。
-- **[tdd-coverage-overlap](tdd-coverage-overlap/SKILL.md)** — pytest-cov の coverage-context で意味的なテスト重複を検出（削除/統合候補を提示）。pytest-cov が必要。
-- **[tdd-optimize](tdd-optimize/SKILL.md)** — pytest テストの最適化（独立性を担保。承認後に適用）。
-- **[tdd-workflow-update](tdd-workflow-update/SKILL.md)** — 進行中ワークフロー JSON を自然言語で動的更新。
+- **[tdd](skills/tdd/SKILL.md)** — オーケストレーター。Plan→サイクル→Coverage Review→Optimize を統括（Notion 連携は任意）。Phase 0 で project-settings の有無を判定し、未生成なら tdd-bootstrap を呼ぶ。
+- **[tdd-bootstrap](skills/tdd-bootstrap/SKILL.md)** — 初回セットアップ。Python プロジェクトを走査し、`.claude/skills/_shared-tdd/` にプロジェクト固有設定（`project-settings.md` + テンプレ 3 ファイル）を生成（承認制）。
+- **[tdd-project-settings-update](skills/tdd-project-settings-update/SKILL.md)** — 生成済み `project-settings.md` を自然言語指示で調整・追記・修正（diff 提案→承認→適用。手編集を潰さず、メモリ同期も提案）。
+- **[tdd-red](skills/tdd-red/SKILL.md)** — Red。失敗する pytest テストを 1 本だけ書く（schema roundtrip / logic / validation）。
+- **[tdd-green](skills/tdd-green/SKILL.md)** — Green。テストを通す最小実装（`schemas/` の pydantic モデルや CLI コマンド等）。
+- **[tdd-refactor](skills/tdd-refactor/SKILL.md)** — Refactor。挙動を変えずにコード品質を改善。
+- **[tdd-commit](skills/tdd-commit/SKILL.md)** — Commit。1 サイクル分をコミットし、状態をアーカイブ。
+- **[tdd-evacuator](skills/tdd-evacuator/SKILL.md)** — リファクタ候補・pytest テスト妥当性に加え、サイクル境界で次サイクルの追加テストを提案（読み取り専用・編集しない）。
+- **[tdd-coverage-review](skills/tdd-coverage-review/SKILL.md)** — pydantic モデル/関数 × テストカテゴリのマトリクスで不足テストを補完。
+- **[tdd-coverage-overlap](skills/tdd-coverage-overlap/SKILL.md)** — pytest-cov の coverage-context で意味的なテスト重複を検出（削除/統合候補を提示）。pytest-cov が必要。
+- **[tdd-optimize](skills/tdd-optimize/SKILL.md)** — pytest テストの最適化（独立性を担保。承認後に適用）。
+- **[tdd-workflow-update](skills/tdd-workflow-update/SKILL.md)** — 進行中ワークフロー JSON を自然言語で動的更新。
 
 ## 共通契約（`_shared-tdd/`）
 
