@@ -2,5 +2,7 @@
   "name": "tdd-rails",
   "version": "0.1.0",
   "description": "Rails + RSpec 向け TDD ワークフロー自動化スキル。Plan→Red→Green→Refactor→Commit→Coverage Review→Optimize を状態永続化しながら回す。",
-  "author": { "name": "SC-Ryu1240" }
+  "author": {
+    "name": "Ryu1240"
+  }
 }
