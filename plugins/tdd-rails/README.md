@@ -19,7 +19,7 @@ Ruby on Rails + RSpec バックエンド向けの TDD ワークフロー自動�
 | lint / hook | Rubocop + husky/lint-staged |
 | CI | CircleCI |
 
-これらの前提は [`_shared-tdd/project-settings.md`](_shared-tdd/project-settings.md) に集約されています。**自分のプロジェクトに合わせてこのファイルを書き換えてください。**
+これらの前提は [`_shared-tdd/project-settings.md`](skills/_shared-tdd/project-settings.md) に集約されています。**自分のプロジェクトに合わせてこのファイルを書き換えてください。**
 
 ## インストール
 
@@ -36,17 +36,17 @@ plugin 同梱の `_shared-tdd/project-settings.md` は架空リポ `sales-hub` �
 
 ## スキル一覧
 
-- **[tdd](tdd/SKILL.md)** — オーケストレーター。Plan→サイクル→Coverage Review→Optimize を統括（Notion 連携は任意）。Phase 0 で project-settings の有無を判定し、未生成なら tdd-bootstrap を呼ぶ。
-- **[tdd-bootstrap](tdd-bootstrap/SKILL.md)** — 初回セットアップ。Rails プロジェクトを走査し、`.claude/skills/_shared-tdd/` にプロジェクト固有設定（`project-settings.md` + テンプレ 3 ファイル）を生成（承認制）。
-- **[tdd-project-settings-update](tdd-project-settings-update/SKILL.md)** — 生成済み `project-settings.md` を自然言語指示で調整・追記・修正（diff 提案→承認→適用。手編集を潰さず、メモリ同期も提案）。
-- **[tdd-red](tdd-red/SKILL.md)** — Red。失敗するテストを 1 本だけ書き、意図通り失敗することを確認。
-- **[tdd-green](tdd-green/SKILL.md)** — Green。テストを通す最小実装。
-- **[tdd-refactor](tdd-refactor/SKILL.md)** — Refactor。N+1/dependent/サービス抽出などをテスト緑のまま改善。
-- **[tdd-commit](tdd-commit/SKILL.md)** — Commit。1 サイクル分を husky/lint-staged 準拠でコミットし、状態をアーカイブ。
-- **[tdd-evacuator](tdd-evacuator/SKILL.md)** — リファクタ候補・テスト妥当性に加え、サイクル境界で次サイクルの追加テストを提案（読み取り専用・編集しない）。
-- **[tdd-coverage-review](tdd-coverage-review/SKILL.md)** — endpoint/model × テストカテゴリのマトリクスで不足テストを補完。
-- **[tdd-optimize](tdd-optimize/SKILL.md)** — RSpec テストの最適化（独立性を担保。承認後に適用）。
-- **[tdd-workflow-update](tdd-workflow-update/SKILL.md)** — 進行中ワークフロー JSON を自然言語で動的更新。
+- **[tdd](skills/tdd/SKILL.md)** — オーケストレーター。Plan→サイクル→Coverage Review→Optimize を統括（Notion 連携は任意）。Phase 0 で project-settings の有無を判定し、未生成なら tdd-bootstrap を呼ぶ。
+- **[tdd-bootstrap](skills/tdd-bootstrap/SKILL.md)** — 初回セットアップ。Rails プロジェクトを走査し、`.claude/skills/_shared-tdd/` にプロジェクト固有設定（`project-settings.md` + テンプレ 3 ファイル）を生成（承認制）。
+- **[tdd-project-settings-update](skills/tdd-project-settings-update/SKILL.md)** — 生成済み `project-settings.md` を自然言語指示で調整・追記・修正（diff 提案→承認→適用。手編集を潰さず、メモリ同期も提案）。
+- **[tdd-red](skills/tdd-red/SKILL.md)** — Red。失敗するテストを 1 本だけ書き、意図通り失敗することを確認。
+- **[tdd-green](skills/tdd-green/SKILL.md)** — Green。テストを通す最小実装。
+- **[tdd-refactor](skills/tdd-refactor/SKILL.md)** — Refactor。N+1/dependent/サービス抽出などをテスト緑のまま改善。
+- **[tdd-commit](skills/tdd-commit/SKILL.md)** — Commit。1 サイクル分を husky/lint-staged 準拠でコミットし、状態をアーカイブ。
+- **[tdd-evacuator](skills/tdd-evacuator/SKILL.md)** — リファクタ候補・テスト妥当性に加え、サイクル境界で次サイクルの追加テストを提案（読み取り専用・編集しない）。
+- **[tdd-coverage-review](skills/tdd-coverage-review/SKILL.md)** — endpoint/model × テストカテゴリのマトリクスで不足テストを補完。
+- **[tdd-optimize](skills/tdd-optimize/SKILL.md)** — RSpec テストの最適化（独立性を担保。承認後に適用）。
+- **[tdd-workflow-update](skills/tdd-workflow-update/SKILL.md)** — 進行中ワークフロー JSON を自然言語で動的更新。
 
 ## 共通契約（`_shared-tdd/`）
 
