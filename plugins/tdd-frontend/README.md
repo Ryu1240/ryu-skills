@@ -37,7 +37,7 @@ plugin 同梱の `_shared-tdd/project-settings.md` は架空リポ `storefront` 
 ## スキル一覧
 
 - **[tdd](skills/tdd/SKILL.md)** — オーケストレーター。Plan→サイクル→Coverage Review→Optimize を統括（Notion 連携は任意）。Phase 0 で project-settings の有無を判定し、未生成なら tdd-bootstrap を呼ぶ。
-- **[tdd-bootstrap](skills/tdd-bootstrap/SKILL.md)** — 初回セットアップ。フロントエンドプロジェクトを走査し、`.claude/skills/_shared-tdd/` にプロジェクト固有設定（`project-settings.md` + テンプレ 3 ファイル）を生成（承認制）。
+- **[tdd-bootstrap](skills/tdd-bootstrap/SKILL.md)** — 初回セットアップ。フロントエンドプロジェクトを走査し、`.claude/skills/_shared-tdd/` にプロジェクト固有設定（`project-settings.md` + テンプレ 3 ファイル）を生成（承認制）。あわせて `.claude/tdd-workflow/`（実行時の状態ファイル）を gitignore するかを確認します。
 - **[tdd-project-settings-update](skills/tdd-project-settings-update/SKILL.md)** — 生成済み `project-settings.md` を自然言語指示で調整・追記・修正（diff 提案→承認→適用。手編集を潰さず、メモリ同期も提案）。
 - **[tdd-red](skills/tdd-red/SKILL.md)** — Red。失敗する Vitest テストを 1 本だけ書き、意図通り失敗することを確認。
 - **[tdd-green](skills/tdd-green/SKILL.md)** — Green。テストを通す最小実装（component/composable/store/util）。

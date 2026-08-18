@@ -61,7 +61,7 @@ Claude Code の plugin マーケットプレイスとして登録し、使いた
 Ruby on Rails + RSpec バックエンド向け。マルチテナント scope・OpenAPI 契約検証（Committee）・FactoryBot・Bullet（N+1）・Pundit・husky/lint-staged を前提にしています。詳細は [`plugins/tdd-rails/README.md`](plugins/tdd-rails/README.md) を参照。
 
 - **[tdd](plugins/tdd-rails/skills/tdd/SKILL.md)** — オーケストレーター。Plan→サイクル→Coverage Review→Optimize を統括（Notion 連携は任意）。Phase 0 で project-settings の有無を判定し、未生成なら tdd-bootstrap を呼ぶ。
-- **[tdd-bootstrap](plugins/tdd-rails/skills/tdd-bootstrap/SKILL.md)** — 初回セットアップ。Rails プロジェクトを走査し、`.claude/skills/_shared-tdd/` にプロジェクト固有設定を生成（承認制）。
+- **[tdd-bootstrap](plugins/tdd-rails/skills/tdd-bootstrap/SKILL.md)** — 初回セットアップ。Rails プロジェクトを走査し、`.claude/skills/_shared-tdd/` にプロジェクト固有設定を生成（承認制）。あわせて `.claude/tdd-workflow/`（実行時の状態ファイル）を gitignore するかを確認します。
 - **[tdd-project-settings-update](plugins/tdd-rails/skills/tdd-project-settings-update/SKILL.md)** — 生成済み `project-settings.md` を自然言語指示で調整・追記・修正（diff 提案→承認→適用。手編集を潰さず、メモリ同期も提案）。
 - **[tdd-red](plugins/tdd-rails/skills/tdd-red/SKILL.md)** — Red。失敗するテストを 1 本だけ書き、意図通り失敗することを確認。
 - **[tdd-green](plugins/tdd-rails/skills/tdd-green/SKILL.md)** — Green。テストを通す最小実装。
@@ -77,7 +77,7 @@ Ruby on Rails + RSpec バックエンド向け。マルチテナント scope・O
 Python + pytest + pydantic 向け。`StrictModel`（`extra="forbid"`）・コマンド別モジュール・docker compose 経由のテスト実行を前提にしています。詳細は [`plugins/tdd-python/README.md`](plugins/tdd-python/README.md) を参照。
 
 - **[tdd](plugins/tdd-python/skills/tdd/SKILL.md)** — オーケストレーター。Plan→サイクル→Coverage Review→Optimize を統括（Notion 連携は任意）。Phase 0 で project-settings の有無を判定し、未生成なら tdd-bootstrap を呼ぶ。
-- **[tdd-bootstrap](plugins/tdd-python/skills/tdd-bootstrap/SKILL.md)** — 初回セットアップ。Python プロジェクトを走査し、`.claude/skills/_shared-tdd/` にプロジェクト固有設定を生成（承認制）。
+- **[tdd-bootstrap](plugins/tdd-python/skills/tdd-bootstrap/SKILL.md)** — 初回セットアップ。Python プロジェクトを走査し、`.claude/skills/_shared-tdd/` にプロジェクト固有設定を生成（承認制）。あわせて `.claude/tdd-workflow/`（実行時の状態ファイル）を gitignore するかを確認します。
 - **[tdd-project-settings-update](plugins/tdd-python/skills/tdd-project-settings-update/SKILL.md)** — 生成済み `project-settings.md` を自然言語指示で調整・追記・修正（diff 提案→承認→適用。手編集を潰さず、メモリ同期も提案）。
 - **[tdd-red](plugins/tdd-python/skills/tdd-red/SKILL.md)** — Red。失敗する pytest テストを 1 本だけ書く（schema roundtrip / logic / validation）。
 - **[tdd-green](plugins/tdd-python/skills/tdd-green/SKILL.md)** — Green。テストを通す最小実装（`schemas/` の pydantic モデル等）。
@@ -94,7 +94,7 @@ Python + pytest + pydantic 向け。`StrictModel`（`extra="forbid"`）・コマ
 Vue 3 + Vite + Vitest フロントエンド向け。Vue Testing Library（role 取得）・MSW（API モック）・Pinia・ESLint/Prettier・husky/lint-staged を前提にしています。詳細は [`plugins/tdd-frontend/README.md`](plugins/tdd-frontend/README.md) を参照。
 
 - **[tdd](plugins/tdd-frontend/skills/tdd/SKILL.md)** — オーケストレーター。Plan→サイクル→Coverage Review→Optimize を統括（Notion 連携は任意）。Phase 0 で project-settings の有無を判定し、未生成なら tdd-bootstrap を呼ぶ。
-- **[tdd-bootstrap](plugins/tdd-frontend/skills/tdd-bootstrap/SKILL.md)** — 初回セットアップ。フロントエンドプロジェクトを走査し、`.claude/skills/_shared-tdd/` にプロジェクト固有設定を生成（承認制）。
+- **[tdd-bootstrap](plugins/tdd-frontend/skills/tdd-bootstrap/SKILL.md)** — 初回セットアップ。フロントエンドプロジェクトを走査し、`.claude/skills/_shared-tdd/` にプロジェクト固有設定を生成（承認制）。あわせて `.claude/tdd-workflow/`（実行時の状態ファイル）を gitignore するかを確認します。
 - **[tdd-project-settings-update](plugins/tdd-frontend/skills/tdd-project-settings-update/SKILL.md)** — 生成済み `project-settings.md` を自然言語指示で調整・追記・修正（diff 提案→承認→適用。手編集を潰さず、メモリ同期も提案）。
 - **[tdd-red](plugins/tdd-frontend/skills/tdd-red/SKILL.md)** — Red。失敗する Vitest テストを 1 本だけ書く（component/composable/store/util）。
 - **[tdd-green](plugins/tdd-frontend/skills/tdd-green/SKILL.md)** — Green。テストを通す最小実装（Composition API・MSW handler 等）。
@@ -110,7 +110,7 @@ Vue 3 + Vite + Vitest フロントエンド向け。Vue Testing Library（role �
 TypeScript + Node.js バックエンド向け（Vitest）。**レイヤードアーキテクチャ**（routes → services → repositories → schemas）を前提に、DI での依存差し替え・Zod による境界検証・Supertest・トランザクションロールバックまで踏み込んで指示します。Refactor では**レイヤー逆流 / ループ内 await の N+1 / `await` 漏れ / `any`・`as` の混入**を検出します。モノレポ（workspaces / turborepo / nx）と Jest にも bootstrap が対応。詳細は [`plugins/tdd-node/README.md`](plugins/tdd-node/README.md) を参照。
 
 - **[tdd](plugins/tdd-node/skills/tdd/SKILL.md)** — オーケストレーター。Phase 2 でレイヤーを判定し、Plan→サイクル→Coverage Review→Optimize を統括。
-- **[tdd-bootstrap](plugins/tdd-node/skills/tdd-bootstrap/SKILL.md)** — 初回セットアップ。パッケージ・ランナー・レイヤー構成・独立性の担保方法を走査し、不明点は対話で確認（承認制）。
+- **[tdd-bootstrap](plugins/tdd-node/skills/tdd-bootstrap/SKILL.md)** — 初回セットアップ。パッケージ・ランナー・レイヤー構成・独立性の担保方法を走査し、不明点は対話で確認（承認制）。あわせて `.claude/tdd-workflow/`（実行時の状態ファイル）を gitignore するかを確認します。
 - **[tdd-project-settings-update](plugins/tdd-node/skills/tdd-project-settings-update/SKILL.md)** — 生成済み設定を自然言語で調整（コマンドは `package.json` の scripts で裏取り）。
 - **[tdd-red](plugins/tdd-node/skills/tdd-red/SKILL.md)** — Red。レイヤー別の作法（schema/service/route/repository）で失敗する Vitest テストを 1 本だけ書く。
 - **[tdd-green](plugins/tdd-node/skills/tdd-green/SKILL.md)** — Green。最小実装（DI・Zod 検証・エラークラス・レイヤー遵守）。
@@ -126,7 +126,7 @@ TypeScript + Node.js バックエンド向け（Vitest）。**レイヤードア
 Rails/RSpec backend + Vue/Vitest frontend の**モノレポ**向け。1 スキルセットで `ecosystem`（backend/frontend）を自動判定して各フェーズを分岐します。単体プラグインを複数同時有効化する際の skill 名衝突を避けるため、モノレポでは**これ 1 つだけ**を有効化します。詳細は [`plugins/tdd-monorepo/README.md`](plugins/tdd-monorepo/README.md) を参照。
 
 - **[tdd](plugins/tdd-monorepo/skills/tdd/SKILL.md)** — オーケストレーター。Phase 2 で backend/frontend を自動判定し、Plan→サイクル→Coverage Review→Optimize を統括（Notion 連携は任意）。
-- **[tdd-bootstrap](plugins/tdd-monorepo/skills/tdd-bootstrap/SKILL.md)** — 初回セットアップ。モノレポの backend/frontend パッケージを走査し、`.claude/skills/_shared-tdd/` にプロジェクト固有設定を生成（承認制）。
+- **[tdd-bootstrap](plugins/tdd-monorepo/skills/tdd-bootstrap/SKILL.md)** — 初回セットアップ。モノレポの backend/frontend パッケージを走査し、`.claude/skills/_shared-tdd/` にプロジェクト固有設定を生成（承認制）。あわせて `.claude/tdd-workflow/`（実行時の状態ファイル）を gitignore するかを確認します。
 - **[tdd-project-settings-update](plugins/tdd-monorepo/skills/tdd-project-settings-update/SKILL.md)** — 生成済み `project-settings.md` を自然言語指示で調整・追記・修正（diff 提案→承認→適用。手編集を潰さず、メモリ同期も提案）。
 - **[tdd-red](plugins/tdd-monorepo/skills/tdd-red/SKILL.md)** — Red。ecosystem に応じて失敗する RSpec / Vitest テストを 1 本だけ書く。
 - **[tdd-green](plugins/tdd-monorepo/skills/tdd-green/SKILL.md)** — Green。テストを通す最小実装（Rails or Vue/TS）。
@@ -142,7 +142,7 @@ Rails/RSpec backend + Vue/Vitest frontend の**モノレポ**向け。1 スキ�
 **専用 plugin が無いあらゆる言語**向け（Go / Rust / Java / Kotlin / PHP / C# / Elixir / Swift / Dart / Scala / Ruby(非Rails) / React …）。スキル本体は言語知識を持たず、テストコマンド・配置・独立性の担保方法・言語固有イディオムをすべて `project-settings.md` から読みます。加えて不変条件に「**既存テストの慣習を踏襲する**」を据えることで、言語非依存のまま各リポの流儀に適応します。詳細は [`plugins/tdd-universal/README.md`](plugins/tdd-universal/README.md) を参照。
 
 - **[tdd](plugins/tdd-universal/skills/tdd/SKILL.md)** — オーケストレーター。Plan→サイクル→Coverage Review→Optimize を統括。Phase 0 で未設定（`{{...}}` の残存）を検出し bootstrap を呼ぶ。
-- **[tdd-bootstrap](plugins/tdd-universal/skills/tdd-bootstrap/SKILL.md)** — **対話型**初回セットアップ。言語検出表とランナー別コマンド表で走査し、検出できない項目はヒアリングして設定を構築（承認制）。マニフェスト検出ゼロでも対話だけで成立。
+- **[tdd-bootstrap](plugins/tdd-universal/skills/tdd-bootstrap/SKILL.md)** — **対話型**初回セットアップ。言語検出表とランナー別コマンド表で走査し、検出できない項目はヒアリングして設定を構築（承認制）。マニフェスト検出ゼロでも対話だけで成立。あわせて `.claude/tdd-workflow/`（実行時の状態ファイル）を gitignore するかを確認します。
 - **[tdd-project-settings-update](plugins/tdd-universal/skills/tdd-project-settings-update/SKILL.md)** — 生成済み `project-settings.md` を自然言語指示で調整（コマンドは実在を裏取りしてから提案）。
 - **[tdd-red](plugins/tdd-universal/skills/tdd-red/SKILL.md)** — Red。既存テストの慣習を抽出してから失敗するテストを 1 本だけ書く。
 - **[tdd-green](plugins/tdd-universal/skills/tdd-green/SKILL.md)** — Green。テストを通す最小実装（既存実装の慣習も踏襲）。
