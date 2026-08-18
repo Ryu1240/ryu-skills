@@ -2,7 +2,7 @@
   "name": "general-skills",
   "description": "スタック別の TDD ワークフロー自動化スキル集。Plan→Red→Green→Refactor→Commit を状態永続化しながらフェーズ単位で回し、Coverage Review と Test Optimize まで進めます。Rails / Python / Vue / TS・Node / モノレポ / 任意言語（汎用）の 6 プラグイン。",
   "owner": {
-    "name": "SC-Ryu1240"
+    "name": "Ryu1240"
   },
   "plugins": [
     {
