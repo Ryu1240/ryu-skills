@@ -12,6 +12,7 @@ allowed-tools:
   - Bash(ls:*)
   - Bash(find:*)
   - Bash(cat:*)
+  - Bash(git check-ignore:*)
   - Bash(git log:*)
 examples:
   - input: /tdd-bootstrap
@@ -180,7 +181,38 @@ plugin 同梱の **テンプレ**（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/{f
 ### 5-3. 自己検証（必須）
 生成した `project-settings.md` を Read し直し、**`{{` が残っていないこと**と、単一ケース/単一ファイル実行コマンドが実在することを確認する。残っていれば埋めてから完了とする。
 
-## Step 6: サマリ提示
+## Step 6: ワークフロー状態の git 追跡設定（確認）
+
+`/tdd` は実行中に `.claude/tdd-workflow/` へ状態ファイルを書き出す（`workflow-{id}.json` / `current-cycle.json` / `notion-context-*.json` / `optimization-report-*.md`）。これらは**開発者ごとの進行中の作業状態**であり、コミットするとレビューのノイズや複数人作業時のコンフリクトの原因になる。Notion 連携を使う場合はタスク本文のキャッシュも含まれる。
+
+### 6-1. 現状確認
+```bash
+git check-ignore -q .claude/tdd-workflow/ && echo ignored || echo not-ignored
+```
+- **既に無視されている** → 何もせず次へ（サマリで「設定済み」と報告）。
+- **無視されていない** → 6-2 へ。
+- git 管理下でない（コマンドが失敗する）→ このステップをスキップ。
+
+### 6-2. ユーザーに確認（AskUserQuestion・必須）
+「TDD ワークフローの状態ファイルを git 管理から除外しますか？」として次を提示する:
+
+- **`.gitignore` に追加（推奨）** — チーム全員に効く。`.gitignore` の変更自体はコミット対象になる。
+- **`.git/info/exclude` に追加** — このクローンのみ。`.gitignore` を変更したくない場合に。他メンバーには効かない。
+- **除外しない** — ワークフローの計画・進捗をチームで共有・レビューしたい場合。
+
+### 6-3. 適用（承認された選択のみ）
+対象ファイル（`.gitignore` または `.git/info/exclude`）を Read し、**同じ行が既にあれば何もしない**。無ければ末尾に追記して Write する:
+
+```
+# TDD ワークフローの進行状態（開発者ごとの一時ファイル）
+.claude/tdd-workflow/
+```
+
+追記後に `git check-ignore -q .claude/tdd-workflow/` を再実行し、**実際に効いていることを確認**する。効いていなければ原因（別の否定パターン等）を提示する。
+
+> ⚠️ `.claude/skills/_shared-tdd/` は**チームで共有すべき設定**なので絶対に ignore しない。このステップの対象は `.claude/tdd-workflow/` のみ。
+
+## Step 7: サマリ提示
 
 ```
 ✅ Bootstrap 完了 — `.claude/skills/_shared-tdd/`
@@ -197,6 +229,8 @@ plugin 同梱の **テンプレ**（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/{f
 2. /tdd "<タスク>" で TDD ワークフロー開始
    ※ 後から直すときは /tdd-project-settings-update "<指示>"
 ```
+
+> サマリには**ワークフロー状態の git 追跡設定の結果**（`.gitignore` に追加 / `.git/info/exclude` に追加 / 除外しない / 既に設定済み）を 1 行含める。
 
 ## エラーハンドリング
 

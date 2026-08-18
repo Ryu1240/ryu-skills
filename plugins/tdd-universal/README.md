@@ -49,7 +49,7 @@
 ## スキル一覧
 
 - **[tdd](skills/tdd/SKILL.md)** — オーケストレーター。Plan→サイクル→Coverage Review→Optimize を統括（Notion 連携は任意）。Phase 0 で project-settings の未設定を検出し bootstrap を呼ぶ。
-- **[tdd-bootstrap](skills/tdd-bootstrap/SKILL.md)** — **対話型**初回セットアップ。走査＋ヒアリングで `.claude/skills/_shared-tdd/` を生成（承認制）。言語検出表・ランナー別コマンド表を内蔵。
+- **[tdd-bootstrap](skills/tdd-bootstrap/SKILL.md)** — **対話型**初回セットアップ。走査＋ヒアリングで `.claude/skills/_shared-tdd/` を生成（承認制）。言語検出表・ランナー別コマンド表を内蔵。あわせて `.claude/tdd-workflow/`（実行時の状態ファイル）を gitignore するかを確認します。
 - **[tdd-project-settings-update](skills/tdd-project-settings-update/SKILL.md)** — 生成済み `project-settings.md` を自然言語指示で調整・追記・修正（diff 提案→承認→適用。コマンドは実在を裏取り）。
 - **[tdd-red](skills/tdd-red/SKILL.md)** — Red。**既存テストの慣習を抽出**してから、失敗するテストを 1 本だけ書く。
 - **[tdd-green](skills/tdd-green/SKILL.md)** — Green。テストを通す最小実装（既存実装の慣習も踏襲）。

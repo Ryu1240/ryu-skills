@@ -67,7 +67,7 @@ src/schemas/      … Zod スキーマと型
 ## スキル一覧
 
 - **[tdd](skills/tdd/SKILL.md)** — オーケストレーター。Phase 2 でレイヤーを判定し、Plan→サイクル→Coverage Review→Optimize を統括（Notion 連携は任意）。
-- **[tdd-bootstrap](skills/tdd-bootstrap/SKILL.md)** — 初回セットアップ。モノレポ対応でパッケージ・ランナー・レイヤー構成・独立性の担保方法を走査し、不明点は対話で確認して設定を生成（承認制）。
+- **[tdd-bootstrap](skills/tdd-bootstrap/SKILL.md)** — 初回セットアップ。モノレポ対応でパッケージ・ランナー・レイヤー構成・独立性の担保方法を走査し、不明点は対話で確認して設定を生成（承認制）。あわせて `.claude/tdd-workflow/`（実行時の状態ファイル）を gitignore するかを確認します。
 - **[tdd-project-settings-update](skills/tdd-project-settings-update/SKILL.md)** — 生成済み `project-settings.md` を自然言語指示で調整（コマンドは `package.json` の scripts で実在を裏取り）。
 - **[tdd-red](skills/tdd-red/SKILL.md)** — Red。レイヤー別の作法で失敗する Vitest テストを 1 本だけ書く。
 - **[tdd-green](skills/tdd-green/SKILL.md)** — Green。テストを通す最小実装（DI・Zod 検証・エラークラス・レイヤー遵守）。
