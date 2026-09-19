@@ -1,6 +1,6 @@
 {
   "name": "general-skills",
-  "description": "スタック別の TDD ワークフロー自動化スキル集。Plan→Red→Green→Refactor→Commit を状態永続化しながらフェーズ単位で回し、Coverage Review と Test Optimize まで進めます。Rails / Python / Vue / TS・Node / モノレポ / 任意言語（汎用）の 6 プラグイン。",
+  "description": "スタック別の TDD ワークフロー自動化スキル集。Plan→Red→Green→Refactor→Commit を状態永続化しながらフェーズ単位で回し、Coverage Review と Test Optimize まで進めます。Rails / Python / Vue / TS・Node / Go / Rust / モノレポ / 任意言語（汎用）の 8 プラグイン。",
   "owner": {
     "name": "Ryu1240"
   },
@@ -24,6 +24,16 @@
       "name": "tdd-node",
       "source": "./plugins/tdd-node",
       "description": "TypeScript / Node.js バックエンド（Vitest）向け TDD ワークフロー自動化スキル"
+    },
+    {
+      "name": "tdd-go",
+      "source": "./plugins/tdd-go",
+      "description": "Go（標準 testing / テーブル駆動 / httptest）バックエンド向け TDD ワークフロー自動化スキル"
+    },
+    {
+      "name": "tdd-rust",
+      "source": "./plugins/tdd-rust",
+      "description": "Rust（cargo test / axum / sqlx）向け TDD ワークフロー自動化スキル"
     },
     {
       "name": "tdd-monorepo",
