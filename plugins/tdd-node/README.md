@@ -47,6 +47,7 @@ src/schemas/      … Zod スキーマと型
 | Rails + RSpec | `tdd-rails` |
 | Python + pytest | `tdd-python` |
 | Go バックエンド | `tdd-go` |
+| Rust | `tdd-rust` |
 | Rails + Vue モノレポ | `tdd-monorepo` |
 | 上記以外の言語 | `tdd-universal` |
 

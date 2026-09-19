@@ -23,7 +23,7 @@ examples:
 
 **任意の言語**のプロジェクトを走査し、`.claude/skills/_shared-tdd/` 配下に project-settings.md を含む 4 ファイルを生成する。
 
-このスキルの役割は「**検出できるものは自動で埋め、できないものはユーザーに聞く**」こと。専用プラグイン（tdd-rails / tdd-python / tdd-frontend / tdd-node / tdd-go / tdd-monorepo）が無いスタックでも TDD ワークフローを成立させるための入口。`/tdd` の Phase 0 から自動呼び出しされるほか、単独でも実行できる。
+このスキルの役割は「**検出できるものは自動で埋め、できないものはユーザーに聞く**」こと。専用プラグイン（tdd-rails / tdd-python / tdd-frontend / tdd-node / tdd-go / tdd-rust / tdd-monorepo）が無いスタックでも TDD ワークフローを成立させるための入口。`/tdd` の Phase 0 から自動呼び出しされるほか、単独でも実行できる。
 
 > 原則: **推測で埋めない**。検出できた項目は「検出値」として提示し、できなかった項目は必ず聞く。捏造した値を書くと以降の全フェーズが空振りする。
 
@@ -236,5 +236,5 @@ git check-ignore -q .claude/tdd-workflow/ && echo ignored || echo not-ignored
 
 - **マニフェストが1つも見つからない**: 「言語を自動判定できませんでした」と伝え、Step 3 の優先度1をすべてヒアリングして生成する（自動検出ゼロでも対話だけで成立させる）。
 - **既存テストが0件**: ケース記述スタイル・独立性の担保方法を実物から抽出できないため、両方ヒアリングする。「最初のテストがこのリポの流儀を決める」ことを伝える。
-- **専用プラグインが存在するスタックだった場合**（Rails / Python+pytest / Vue+Vitest / TS+Node バックエンド / Go / Rails+Vue モノレポ）: その旨を提示し、`tdd-rails` / `tdd-python` / `tdd-frontend` / `tdd-node` / `tdd-go` / `tdd-monorepo` の方が言語固有の作法まで踏み込めることを案内する。ただし**ユーザーがこのまま汎用版で進めたい場合はそのまま生成する**（強制しない）。
+- **専用プラグインが存在するスタックだった場合**（Rails / Python+pytest / Vue+Vitest / TS+Node バックエンド / Go / Rust / Rails+Vue モノレポ）: その旨を提示し、`tdd-rails` / `tdd-python` / `tdd-frontend` / `tdd-node` / `tdd-go` / `tdd-rust` / `tdd-monorepo` の方が言語固有の作法まで踏み込めることを案内する。ただし**ユーザーがこのまま汎用版で進めたい場合はそのまま生成する**（強制しない）。
 - **既存 `.claude/skills/_shared-tdd/` がある状態で `--force` 未指定** → 承認なしに上書きしてはいけない。
