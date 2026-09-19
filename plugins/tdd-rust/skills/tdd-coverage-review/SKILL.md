@@ -25,10 +25,13 @@ TDD 完了後、ledger-core のテスト網羅性を「対象 × テストカテ
 ## 共通契約（必ず Read）
 - `.claude/skills/_shared-tdd/project-settings.md`（テストコマンド・レイヤー構成）/ `workflow-schema.md` / `commit-convention.md`
 
+## 入口ゲート
+`current-cycle.json` が**存在しないこと**（サイクル進行中でない）と `completed_cycles` 非空を確認。進行中なら `/tdd-commit {id}` を案内し中断。
+
 ## 1. コンテキスト
 `workflow-{id}.json`（`task_title`, `completed_cycles`, `patterns`, `todo_task_id`）を Read。対象テスト・実装ファイルを Read。
 実装から**公開インターフェイス**を列挙してマトリクスの行にする（route ならエンドポイント×メソッド、service なら `pub fn`、domain なら値オブジェクトのコンストラクタと**エラー enum の各 variant**）。
-`cargo llvm-cov`（導入時。無ければスキップ）を実行し、未到達行の手がかりにする（数値目標ではなく**抜けの発見**に使う）。
+`cargo llvm-cov -p {crate} --show-missing-lines`（導入時。無ければスキップ。既定出力はファイル別サマリだけで行番号が出ない）を実行し、未到達行の手がかりにする（数値目標ではなく**抜けの発見**に使う）。
 
 ## 2. マトリクス
 
@@ -60,8 +63,7 @@ TDD 完了後、ledger-core のテスト網羅性を「対象 × テストカテ
 選択分を対応する `#[cfg(test)] mod tests` または `tests/*.rs` に追加（既存は変更しない。フェイク / ビルダーも必要に応じ `testutil` に追加）。
 **独立性を維持**: DB は `#[sqlx::test]`、`MockServer` はテストごと、共有可変状態を作らない。
 ```bash
-cargo test -p {crate} {module_path}::
-cargo test -p {crate} --test {file}
+cargo test -p {crate}   # 追加先が複数モジュール・統合テストに跨るのでクレート単位
 ```
 全件 pass を確認（既存を壊していないこと）。`cargo clippy --all-targets -- -D warnings` も通す（hook 対策）。
 

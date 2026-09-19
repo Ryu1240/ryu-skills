@@ -13,6 +13,8 @@ allowed-tools:
   - Bash(just:*)
   - Grep
   - Glob
+  - TaskGet
+  - Bash(date:*)
 examples:
   - input: /tdd-red tdd-20260613-101500
     description: Execute Red phase for the current cycle
@@ -35,7 +37,7 @@ TDD の Red フェーズ。**今サイクルのテストを1つだけ**（1つ�
 ## 2. テストの置き場所決定
 `$1` 指定があればそれ。無ければ `patterns.test_location` と既存の慣習に従う：
 - **ユニット（domain / service / repository）**: 実装ファイル末尾の `#[cfg(test)] mod tests { use super::*; ... }`（既存 `mod tests` への追記を優先、無ければ新規作成）。`src/services/inventory.rs` → 同ファイル内。`mod.rs` 分割や `#[cfg(test)] mod tests;` + `tests.rs` の慣習があればそれに従う。
-- **統合（route の契約テスト・公開 API）**: `tests/{name}.rs`（lib の公開 API 経由。`tests/common/mod.rs` にヘルパ）。既存の配置に揺れがあれば Glob で数え多数派に合わせる。
+- **統合（route の契約テスト・公開 API）**: `tests/{name}.rs`（lib の公開 API 経由。ヘルパ・フェイクは `tests/common/mod.rs` に置く。**lib 側の `#[cfg(test)] mod testutil` は統合テストバイナリから見えない**ので使えない。lib のフェイクを共有したければ `test-util` feature で公開する＝停止条件#2 の設計判断）。既存の配置に揺れがあれば Glob で数え多数派に合わせる。
 
 ## 2-b. 既存テストへの影響確認（critical）
 **公開インターフェイスの変更**は既存テスト・フェイクを壊す。変更する場合は参照箇所を Grep し、必要なら本サイクルで合わせて更新（振る舞いの意味は変えない）：
@@ -86,14 +88,14 @@ mod tests {
     }
 }
 ```
-- **`mockall` より手書きフェイクを優先**（不変条件#4。既に `mockall` を使うリポではそれに従う）。フェイクが複数モジュールで要るなら `#[cfg(test)] pub mod testutil` に置く。
+- **`mockall` より手書きフェイクを優先**（不変条件#4。既に `mockall` を使うリポではそれに従う）。フェイクが複数モジュールで要るなら `#[cfg(test)] pub mod testutil` に置く（ユニットテスト専用。`tests/*.rs` からは見えない）。
 - 時刻・乱数は `Clock` などのトレイトで注入し、テストでは固定値を返すフェイクを渡す。
 
 ### route spec（HTTP 契約。`oneshot`）
 ```rust
 #[tokio::test]
 async fn returns_409_when_stock_is_insufficient() {
-    let app = test_app(FakeRepo { stock: 0 });      // Router を組み立てるヘルパ（testutil / tests/common）
+    let app = test_app(FakeRepo { stock: 0 });      // Router を組み立てるヘルパ（inline なら testutil、tests/ なら tests/common）
     let req = Request::builder()
         .method("POST").uri("/orders")
         .header("content-type", "application/json")
@@ -134,12 +136,26 @@ async fn maps_upstream_500_to_pricing_unavailable() {
 ```
 **実通信はしない**。
 
+### CLI（`patterns.test_kind == "cli"`）
+`assert_cmd` + `predicates` でバイナリを起動し、終了コードと stdout/stderr を契約として検証する（`tests/cli.rs`）。
+```rust
+#[test]
+fn fails_with_exit_code_2_when_amount_is_negative() {
+    Command::cargo_bin("ledger").unwrap()
+        .args(["post", "--amount", "-1"])
+        .assert()
+        .failure().code(2)
+        .stderr(predicate::str::contains("amount must be positive"));
+}
+```
+ロジックはバイナリではなく lib のコマンド層（`cli` / `commands`）に置き、そのユニットテストは inline で書く。`assert_cmd` が未導入なら追加は停止条件#2。
+
 ### パラメータ化が要る場合
 `rstest` 導入時は `#[rstest] #[case(...)]`。未導入なら 1 テスト内でタプル配列をループし、`assert!(..., "case: {name}")` のように失敗メッセージにケース名を含める（それでも **1 サイクル = 1 テスト関数**）。
 
 ## 4. 失敗確認
 ```bash
-cargo test -p {crate} {test_name} -- --exact          # test_name はモジュールパス込み（services::inventory::tests::case_name）
+cargo test -p {crate} --lib {test_name} -- --exact    # inline の場合。test_name はモジュールパス込み（services::inventory::tests::case_name）。--lib でハーネスを 1 つに絞る
 cargo test -p {crate} --test {file} {case} -- --exact  # tests/{file}.rs の統合テストの場合
 ```
 期待される失敗:
@@ -150,11 +166,12 @@ cargo test -p {crate} --test {file} {case} -- --exact  # tests/{file}.rs の統�
 - 対象の未定義**以外**の理由によるコンパイルエラー（`use` 漏れ、テスト内の `Send` 境界不足、lifetime、型推論不能）。
 - `#[tokio::test]` 忘れ（`await` is only allowed inside `async` functions）。
 - `sqlx::query!` が `DATABASE_URL` 未設定 / `.sqlx/` 不在でコンパイル不能（project-settings のコンパイル方式を確認）。
+- **`#[sqlx::test]` が `DATABASE_URL must be set` で panic** → 実行時にもテスト DB への接続が必要（`SQLX_OFFLINE` では回避できない）。環境の問題であり Red ではない。project-settings の接続設定を確認。
 - feature flag 未指定、dev-dependency 未追加（追加は停止条件#2 の設計判断として確認）。
-- **`running 0 tests`** と出る → `test_name` のモジュールパスが誤っている（`--exact` はフィルタ完全一致）。パスを直す。
+- **どのハーネスも `running 1 test` を出さない**（`--lib` / `--test` を付けていれば `running 0 tests` が 1 回だけ）→ `test_name` のモジュールパスが誤っている（`--exact` は完全一致）。パスを直す。`--lib` 無しだと lib・bin・各統合テスト・doc-test のハーネスが順に走り、**正しいパスでも他のハーネスが `running 0 tests` を出す**ので、それだけで誤りと判定しない。
 
 ## 5. 状態更新
-`current-cycle.json` を workflow-schema 準拠で Write（`phase:"red"`, `test_file_path`, **`test_name`**（`-- --exact` に渡す完全名）, `test_details`(error_type/message), `created_at`/`updated_at`）。
+`current-cycle.json` を workflow-schema 準拠で Write（`phase:"red"`, `test_file_path`, **`test_module_path`**（`--lib` で流すときのモジュール接頭辞。`tests/` 配下なら `--test` に渡すファイル名）, **`test_name`**（`-- --exact` に渡す完全名）, **`test_case_count`**（`test_file_path` 内のテスト属性 `#[test]` / `#[tokio::test` / `#[sqlx::test` / `#[rstest` の数。Evac(review) の基準値）, `test_details`(error_type/message。コンパイルエラーなら total/passed/failed は 0), `created_at`/`updated_at`）。
 **自己検証**: Read で `phase=="red"`・`updated_at` 更新を確認。
 
 ## 6. サマリ（簡潔）

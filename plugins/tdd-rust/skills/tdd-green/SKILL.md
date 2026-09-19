@@ -13,6 +13,7 @@ allowed-tools:
   - Bash(just:*)
   - Grep
   - Glob
+  - Bash(date:*)
 examples:
   - input: /tdd-green tdd-20260613-101500
     description: Execute Green phase for the current cycle
@@ -36,17 +37,17 @@ TDD の Green フェーズ。今サイクルの失敗テストを通す**最小�
 ### 必須パターン
 - **レイヤーの依存方向を守る**（routes → services → repositories、domain は末端）。service に `axum::` / `http::` の型を渡さない。repository 以外に `sqlx::query` を書かない。
 - **外部 I/O はトレイトで受け取る**: DB・HTTP クライアント・時刻・乱数 を実装内で直接掴まない（ジェネリクスか `Arc<dyn Trait>`）。トレイトにメソッドを足したら**本実装とフェイクの両方**に実装する。
-- **エラーは型で表現し `?` で伝搬**: 業務エラーは `domain` の `thiserror` enum に variant を足し、`IntoResponse for LedgerError`（routes 層の 1 箇所）で HTTP ステータスに変換する。**非テストコードで `unwrap()` / `expect()` / `panic!` を書かない**。`Result` を `let _ =` で捨てない。
+- **エラーは型で表現し `?` で伝搬**: 業務エラーは `domain` の `thiserror` enum に variant を足し、`IntoResponse for LedgerError`（routes 層の 1 箇所）で HTTP ステータスに変換する。**非テストコードで `unwrap()` / `expect()` / `panic!` を書かない**（不変条件の表明としての `expect("理由")` のみ可）。`Result` を `let _ =` で捨てない。
 - **`unsafe` を書かない**。所有権の問題を `clone()` で逃げない（必要なら設計を見直す。解決不能なら停止条件#8）。
-- **DB スキーマ変更が要るならマイグレーションを生成**（`sqlx migrate add`）して適用し、`sqlx::query!` を使うなら **`cargo sqlx prepare` でオフラインデータを再生成**（生成物はコミット対象）。
+- **DB スキーマ変更が要るならマイグレーションを生成**（`cargo sqlx migrate add`）して適用し、`sqlx::query!` を使うなら **`cargo sqlx prepare` でオフラインデータを再生成**（生成物はコミット対象）。
 
 ### 最小実装の線引き
 テストが要求していない分岐・引数・設定・抽象化は**作らない**。ジェネリクス化・トレイト抽出・キャッシュ・`impl From` の網羅は Refactor フェーズ以降で。`todo!()` を残したまま Green を終えない。
 
 ## 3. テスト pass 確認
 ```bash
-cargo test -p {crate} {module_path}::          # 例: cargo test -p ledger-core services::inventory::
-cargo test -p {crate} --test {file}            # tests/{file}.rs の場合
+cargo test -p {crate} --lib {test_module_path}::   # inline の場合。例: cargo test -p ledger-core --lib services::inventory::
+cargo test -p {crate} --test {test_module_path}    # tests/ 配下の場合（test_module_path はファイル名）
 ```
 モジュール内の全件 pass を確認（対象テストだけでなく同モジュールの既存テストも）。最大3回までリトライ。超えたら state-machine 停止条件#6 として報告。
 

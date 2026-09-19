@@ -35,16 +35,16 @@ Red→Green→Refactor→Commit の間で、ledger-core のコード品質とテ
 
 ### テスト妥当性
 - 計画（`cycle_plan`）と実装テストの一致。
-- **独立性の担保**: DB を使うテストが `#[sqlx::test]`（またはロールバック）か、`MockServer` をテストごとに起動しているか、`static` / `OnceCell` / 環境変数の可変状態を共有していないか、`#[serial]` / `--test-threads=1` に依存していないか。
+- **独立性の担保**: DB を使うテストが `#[sqlx::test]`（またはロールバック）か、`MockServer` をテストごとに起動しているか、`static` の可変状態（`OnceLock` / `LazyLock` / `once_cell::sync::Lazy` / `static Mutex`）・環境変数を共有していないか、`#[serial]` / `--test-threads=1` に依存していないか。
 - **フェイクの粒度**: `mockall` の `expect_*().times(1)` のような呼び出し回数検証が実装詳細への結合になっていないか。手書きフェイクに置き換えられないか（不変条件#4）。
 - **アサーション強度**: `is_err()` / `is_some()` 止まり（variant を `matches!` で判定していない）、ステータスコードだけ見て body を検証していない、`to_string()` の文字列比較でエラー判定している。
 - **テスト内 `unwrap()`**: テストコードでは許容だが、失敗時に何が起きたか分からない箇所は `expect("...")` か `?` を提案。
 
 ## Review mode の評価項目
 - plan で指摘したレイヤー/N+1/エラー/所有権/async/型が実装に反映されたかを Read/Grep で確認。
-- **新規テストが追加されていないこと**を確認（Refactor 原則）: `git diff HEAD -- {test_file} | grep -E "^\+.*#\[(tokio::|sqlx::|r)?test\]"`。新規テスト属性があれば warning。
+- **新規テストが追加されていないこと**を確認（Refactor 原則）: `test_file_path` を Read してテスト属性（`#[test]` / `#[tokio::test` / `#[sqlx::test` / `#[rstest` 等。引数付きも含める）の数を数え、`current-cycle.json` の **`test_case_count`**（Red 完了時点の値）と比較する。増えていれば warning。`git diff HEAD` との比較は**使わない**（Red で追加したテストも未コミットなので必ず差分に出て常に誤検知になる。inline テストでは Green の実装も同じファイルの差分に混ざる）。
 - **振る舞いが変わっていないこと**: `git diff` で条件分岐・ステータスコード・エラー variant・公開シグネチャの変化がないか確認。`pub` の変更は `tests/` と下流クレートへの影響として指摘。
-- **`#[allow(...)]` / `unsafe` / `unwrap()` が増えていないこと**（`git diff` を Grep）。
+- **`#[allow(...)]` / `unsafe` / `unwrap()` が今サイクルで増えていないこと**（`git diff HEAD -- {implementation_files}` の `+` 行を確認。Green 由来の分も含まれるが、いずれも不変条件違反なので指摘対象）。
 - テストが pass している前提（`current-cycle.json` `phase=="refactor"`）。
 
 ## Boundary mode の提案項目（Rust）

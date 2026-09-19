@@ -63,7 +63,7 @@ Rust プロジェクトを走査し、`.claude/skills/_shared-tdd/` 配下に pr
 | lint / format | `clippy.toml` / `Cargo.toml` の `[lints]` / `rustfmt.toml` / `.rustfmt.toml` |
 | タスクランナー | `justfile` / `Makefile` / `.cargo/config.toml` の `[alias]` にある test / lint / cov レシピ（**最優先で採用**） |
 | nextest / llvm-cov | `cargo nextest --version` / `cargo llvm-cov --version`（失敗＝未導入） |
-| pre-commit hook | `cargo-husky`（`[dev-dependencies]`）/ `.pre-commit-config.yaml` / `lefthook.yml` / `.husky/` |
+| pre-commit hook | `.pre-commit-config.yaml` / `lefthook.yml` / `cargo-husky`（`[dev-dependencies]`。**既定 feature は pre-push で `cargo test`**。`precommit-hook` + `run-cargo-fmt` / `run-cargo-clippy` feature か `user-hooks` のときだけ pre-commit で fmt / clippy が走る。feature を Read して確定） |
 | CI | `.github/workflows/*.yml` / `.circleci/config.yml` / `.gitlab-ci.yml` |
 
 ### 2-3. 実コマンドの抽出（最優先）
@@ -109,7 +109,7 @@ Rust プロジェクトを走査し、`.claude/skills/_shared-tdd/` 配下に pr
 
 - **対象クレート**（ワークスペース検出時）: 候補を選択肢に。
 - **CLI プロジェクトだった場合**（clap あり・Web フレームワークなし）: HTTP 前提の節（route 層・`oneshot`・ステータスコード）を CLI 向け（`cli` / `commands` 層・`assert_cmd` + `predicates` で stdout/exit code を検証）に読み替えて生成する旨を確認する。
-- **sqlx のコンパイル方式**（`sqlx::query!` 使用時）: `DATABASE_URL` を必要とする（テスト DB が起動している前提）か、`SQLX_OFFLINE=true` + `.sqlx/` で回すか。**Red/Green のコンパイルがこれで左右される**ので確定させる。
+- **sqlx のコンパイル方式**（`sqlx::query!` 使用時）: `DATABASE_URL` を必要とする（テスト DB が起動している前提）か、`SQLX_OFFLINE=true` + `.sqlx/` で回すか。**Red/Green のコンパイルがこれで左右される**ので確定させる。**`#[sqlx::test]` を使う場合は実行時にも `DATABASE_URL`（テスト DB への接続と CREATEDB 権限）が必要**なので、接続先が用意されているかも確定させる。
 - **独立性の担保方法**（既存テストから抽出できなかった場合）: 「`#[sqlx::test]`（テストごとに DB）」「トランザクションでロールバック」「testcontainers」「DB を使わない（フェイクのみ）」「その他」から選択（複数可）。
 - **レイヤー構成の呼び方**（`src/` の構成が想定と違う場合）: 実際の層名と依存方向を確認。
 - **プロジェクト固有の追加不変条件**（任意。例: `unsafe` を一部モジュールで許容、`clone()` の許容範囲）。
@@ -139,7 +139,7 @@ plugin 同梱テンプレ（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/project-se
 - **不変条件**: DB を使わないなら 3 の `#[sqlx::test]` 記述を調整（diesel なら `test_transaction`、sea-orm なら `MockDatabase`）、`thiserror` 未導入なら 5 を実際のエラー表現に合わせる、レイヤー名は 6 を実態に合わせる。
 
 ### 5-2. `commit-convention.md` / `workflow-schema.md` / `state-machine.md`
-plugin 同梱の **テンプレ**（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/{filename}`）を Read してそのまま Write する（プロジェクト固有差分は project-settings.md に集約）。`${CLAUDE_PLUGIN_ROOT}` が解決できない環境では `plugins/tdd-rust/skills/_shared-tdd/{filename}` を相対 Read する。
+plugin 同梱の **テンプレ**（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/{filename}`）を Read して Write する（プロジェクト固有差分は project-settings.md に集約）。ただし **3 ファイルの見出しのリポ名**（`— ledger-core`）は実プロジェクト名に置換し、`commit-convention.md` の「pre-commit hook あり」の段落は検出結果に合わせる（hook 無しなら「hook が無いため、コミット前に `just lint` 等を手動実行する」に書き換える）。`${CLAUDE_PLUGIN_ROOT}` が解決できない環境では `plugins/tdd-rust/skills/_shared-tdd/{filename}` を相対 Read する。
 
 ### 5-3. 自己検証（必須）
 生成した `project-settings.md` を Read し直し、テスト実行コマンドが実在するかを確認する:
@@ -153,11 +153,12 @@ plugin 同梱の **テンプレ**（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/{f
 
 ### 6-1. 現状確認
 ```bash
-git check-ignore -q .claude/tdd-workflow/ && echo ignored || echo not-ignored
+git check-ignore -q .claude/tdd-workflow/
 ```
-- **既に無視されている** → 何もせず次へ（サマリで「設定済み」と報告）。
-- **無視されていない** → 6-2 へ。
-- git 管理下でない（コマンドが失敗する）→ このステップをスキップ。
+終了コードで判定する（`echo` を繋がない。128 を「未無視」と誤認しないため）:
+- **0（既に無視されている）** → 何もせず次へ（サマリで「設定済み」と報告）。
+- **1（無視されていない）** → 6-2 へ。
+- **128（git 管理下でない）** → このステップをスキップ。
 
 ### 6-2. ユーザーに確認（AskUserQuestion・必須）
 「TDD ワークフローの状態ファイルを git 管理から除外しますか？」として次を提示する:

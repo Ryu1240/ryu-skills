@@ -20,18 +20,19 @@
   "status": "planning_done | in_progress | done",
   "task_title": "string",
   "task_content": "string",
+  "task_content_history": [],                // 任意。tdd-workflow-update が task_content を上書きした際の旧値
   "task_source": "notion | free-text | conversation-context",
   "notion_url": "string | null",
   "target_files": {
     "implementation": ["src/routes/... | src/services/... | src/repositories/..."],
-    "test": "src/services/inventory.rs (#[cfg(test)] mod tests) | tests/*.rs",
+    "test": ["src/services/inventory.rs (#[cfg(test)] mod tests)", "tests/orders_api.rs"],   // サイクルごとに異なりうるので配列
     "domain": ["src/domain/*.rs"],                                        // 型・エラー enum を触る場合
-    "fakes": ["src/testutil/... (#[cfg(test)]) | tests/common/mod.rs"],   // 手書きフェイク・ビルダーを足す場合
+    "fakes": ["src/testutil/... (#[cfg(test)]) | tests/common/mod.rs"],   // 手書きフェイク・ビルダー。tests/*.rs から使うものは tests/common/（cfg(test) は統合テストから見えない）
     "migrations": ["migrations/..."]                                      // DB スキーマを触る場合（.sqlx/ の再生成も伴う）
   },
   "patterns": {                               // 既存コードから抽出した踏襲ルール
     "test_kind": "route | service | repository | domain | cli",
-    "layer": "routes | services | repositories | domain",
+    "layer": "routes | services | repositories | domain | cli",
     "uses_db": true,                           // #[sqlx::test] / トランザクションが要るか
     "uses_external_api": false,                // wiremock の MockServer が要るか
     "test_location": "inline (#[cfg(test)]) | tests/ dir",
@@ -48,9 +49,9 @@
   "current_cycle": 1,
   "todo_task_id": "string",
   "completed_cycles": [
-    {"cycle_number": 1, "commit": "sha", "test_file_path": "...", "implementation_files": ["..."]}
+    {"cycle_number": 1, "title": "string", "commit": "sha", "test_file_path": "...", "test_module_path": "...", "test_name": "...", "implementation_files": ["..."]}
   ],
-  "coverage_review": null,
+  "coverage_review": null,                    // 完了後は {"before": 0, "after": 0, "added": ["..."], "commit": "sha", "completed_at": "ISO8601"}
   "created_at": "ISO8601",
   "updated_at": "ISO8601"
 }
@@ -72,8 +73,10 @@ todo_task_id, completed_cycles, created_at, updated_at`
   "cycle_number": 3,
   "phase": "red | green | refactor",          // "commit" は付けない（commit 完了でこのファイル削除）
   "test_file_path": "string",
+  "test_module_path": "string",               // 例 services::inventory（--lib でモジュール単位に流す接頭辞。tests/ 配下なら --test に渡すファイル名）
   "test_name": "string",                      // cargo test に渡すモジュールパス込みの完全名
-  "test_details": {"total": 0, "passed": 0, "failed": 0, "error_type": "...", "error_message": "..."},
+  "test_case_count": 0,                       // Red 完了時点の test_file_path 内のテスト属性数（#[test] / #[tokio::test] / #[sqlx::test] …）。Evac(review) が増加を検出する基準値
+  "test_details": {"total": 0, "passed": 0, "failed": 0, "error_type": "...", "error_message": "..."},   // コンパイルエラーの Red は total/passed/failed を 0 にする
   "implementation_files": ["..."],            // green 以降
   "refactor_details": { },                    // refactor 以降（空オブジェクト不可）
   "retry_count": 0,
@@ -82,7 +85,7 @@ todo_task_id, completed_cycles, created_at, updated_at`
 }
 ```
 
-- `test_name` は `cargo test -p {crate} {test_name} -- --exact` で単一ケースを流すための**モジュールパス込みの完全名**（例 `services::inventory::tests::returns_out_of_stock_when_stock_is_insufficient`）。統合テスト（`tests/foo.rs`）は `cargo test -p {crate} --test foo {case} -- --exact` で流すため、`test_file_path` が `tests/` 配下なら関数名のみを保存する。
+- `test_name` は `cargo test -p {crate} --lib {test_name} -- --exact` で単一ケースを流すための**モジュールパス込みの完全名**（例 `services::inventory::tests::returns_out_of_stock_when_stock_is_insufficient`）。統合テスト（`tests/foo.rs`）は `cargo test -p {crate} --test foo {case} -- --exact` で流すため、`test_file_path` が `tests/` 配下なら関数名のみを保存する。**`--lib` / `--test` でハーネスを 1 つに絞る**（付けないと lib・bin・各統合テスト・doc-test の全ハーネスが順に走り、正しいパスでも `running 0 tests` が複数出る）。
 - `test_details.error_type` は Rust 特有の区別を残す: `compile_error_undefined`（テストが要求する型/関数が未定義＝期待される Red）/ `assertion_failed` / `panicked` / `status_mismatch` など。
 - **commit 完了時に `current-cycle.json` を削除**し、`completed_cycles` に移す。削除後に不在を Read で確認。
 - 次サイクルの Red 入口は「`current-cycle.json` 不在」を前提条件に検証する。

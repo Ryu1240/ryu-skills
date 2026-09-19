@@ -11,6 +11,8 @@ allowed-tools:
   - Bash(cargo:*)
   - Bash(make:*)
   - Bash(just:*)
+  - Bash(rm .claude/tdd-workflow/:*)
+  - Bash(date:*)
 examples:
   - input: /tdd-commit tdd-20260613-101500
     description: Execute Commit phase for the current cycle
@@ -34,11 +36,18 @@ TDD の Commit フェーズ。完了サイクルを Git コミットし、サイ
 ## 2. コミットメッセージ作成
 commit-convention に従う（日本語・型プレフィックス・**署名はバージョン無し** `Co-Authored-By: Claude <noreply@anthropic.com>`）。サイクル内容を1行サマリ、必要なら詳細箇条書き（`cycle_plan` の `title` 参照）。
 
-## 3. 機密チェック → 個別ステージング
+## 3. 事前検査（hook が無いリポでは必須）
+project-settings の CI / hook 節を確認する。pre-commit hook が**無い**リポでは、コミット前に静的解析を手動で通す（hook があるリポでも通しておくと hook で弾かれない）:
+```bash
+cargo fmt --all && cargo clippy --all-targets -- -D warnings   # justfile / Makefile に lint レシピがあればそれを使う
+```
+警告は実装で解消する（`#[allow(clippy::...)]` で黙らせない。解消できなければ停止条件#8）。
+
+## 4. 機密チェック → 個別ステージング
 commit-convention の機密チェック（`.env`/認証情報/APIキー/**`DATABASE_URL` などの接続文字列**/PII。検出時は停止）。
 個別 `git add <path>`（`git add .`/`-A` 禁止）。**`migrations/` と `.sqlx/`**・`Cargo.lock`・フェイク・スナップショットも忘れず含める（実装だけコミットすると CI の `SQLX_OFFLINE` ビルドや他メンバーの環境が壊れる）。
 
-## 4. コミット（heredoc・hook 準拠）
+## 5. コミット（heredoc・hook 準拠）
 ```bash
 git commit -m "$(cat <<'EOF'
 {サマリー行}
@@ -52,26 +61,25 @@ EOF
 **`--no-verify` 絶対禁止**。`git log -1 --format="%H %s"` で SHA 取得。
 
 ### pre-commit hook で失敗した場合（必須リカバリ）
-cargo-husky / pre-commit / lefthook で `cargo fmt --check` / `cargo clippy -D warnings` が走る。ブロックされたら：
+pre-commit / lefthook（または cargo-husky の precommit-hook feature）で `cargo fmt --check` / `cargo clippy -- -D warnings` が走る。ブロックされたら：
 1. エラーを特定（rustfmt の差分 / clippy の warning / コンパイルエラー）。
 2. 修正: `cargo fmt --all` / clippy 警告は実装で解消（`#[allow(clippy::...)]` で黙らせない）。
 3. 修正ファイルを `git add` し直して**再コミット**（`--no-verify` で回避しない）。
 4. 解決不能なら state-machine 停止条件#7 として状態保存し報告。
 
-hook が無いリポでは、コミット前に project-settings の静的解析コマンド（`just lint` など）を手動で通す。
 
-## 5. アーカイブ（workflow JSON 更新・スキーマ準拠）
-`workflow-{id}.json` を Edit（workflow-schema 準拠）: `completed_cycles` に今サイクル追記（`cycle_number`, `title`, `commit`(SHA), `test_file_path`, `implementation_files`）、`current_cycle` +1、`updated_at` 更新、`status` は `in_progress`（全完了時は tdd 側 Phase6 で `done`）。
+## 6. アーカイブ（workflow JSON 更新・スキーマ準拠）
+`workflow-{id}.json` を Edit（workflow-schema 準拠）: `completed_cycles` に今サイクル追記（`cycle_number`, `title`, `commit`(SHA), `test_file_path`, `test_module_path`, `test_name`, `implementation_files`。Optimize が単一ケース実行に使う）、`current_cycle` +1、`updated_at` 更新、`status` は `in_progress`（全完了時は tdd 側 Phase6 で `done`）。
 
-## 6. current-cycle.json 削除 + 不在確認（必須）
+## 7. current-cycle.json 削除 + 不在確認（必須）
 ```bash
 rm .claude/tdd-workflow/current-cycle.json
 ```
 削除後、Read を試みて**不在（エラー）を確認**。残っていたら再削除。（次サイクル Red 入口が不在を前提とするため。）
 
-## 7. 検証（必須・state-machine と対応）
+## 8. 検証（必須・state-machine と対応）
 `git log -1 --format="%H"` 非空 / `completed_cycles` 末尾 `commit` == SHA・`current_cycle` == 旧+1 / `current-cycle.json` 不在。いずれか失敗なら状態保存し中断、再実行を案内。
 
-## 8. サマリ（簡潔）
+## 9. サマリ（簡潔）
 SHA / コミットメッセージ / コミットしたファイル / 進捗 `{current_cycle-1}/{total_cycles}`。
 最終サイクルなら「push すれば CI が `cargo test` / `cargo clippy` / `cargo fmt --check` を実行」と案内。→ サイクル境界の挙動は tdd（run_mode）に従う。

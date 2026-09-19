@@ -17,7 +17,7 @@
 | DB | sqlx。テストは `#[sqlx::test]`（テストごとに DB 作成 + マイグレーション） |
 | エラー | `thiserror` の enum（domain）。`anyhow` は `main.rs` のみ |
 | パラメータ化 | `rstest`（導入時） |
-| lint / hook | `cargo fmt` + `cargo clippy -D warnings` + cargo-husky / pre-commit / lefthook |
+| lint / hook | `cargo fmt` + `cargo clippy -- -D warnings` + pre-commit / lefthook（または cargo-husky の precommit-hook feature） |
 | CI | GitHub Actions / CircleCI |
 
 これらの前提は [`_shared-tdd/project-settings.md`](skills/_shared-tdd/project-settings.md) に集約されています。**自分のプロジェクトに合わせて書き換えてください**（`/tdd-bootstrap` が自動生成します）。
@@ -34,7 +34,7 @@ src/domain/       … 型・値オブジェクト・エラー enum。I/O を知�
 ```
 
 - **Red** はレイヤー別のテスト作法を指示（domain=`matches!` で variant 判定、service=トレイトに手書きフェイクを注入、route=`oneshot`、repository=`#[sqlx::test]`、外部 API=`wiremock`）。**テストが要求する型・関数が未定義でコンパイルできない**のが Rust の正規の Red であることを明記しています。
-- **Refactor** は Rust 固有の観点で改善（**レイヤー逆流**の解消 / **ループ内 `.await` の N+1** / 非テストコードの **`unwrap()`・`clone()`・`unsafe`** / `Box<dyn Error>` → 型付き enum / **`.await` 跨ぎの `MutexGuard`**・async 内のブロッキング / newtype と enum による型駆動設計 / `#[allow]` の増加検出）
+- **Refactor** は Rust 固有の観点で改善（**レイヤー逆流**の解消 / **ループ内 `.await` の N+1** / 非テストコードの **`unwrap()`・不要な `clone()`**（`unsafe` の増加は Evac が検出し、導入は設計判断として停止）/ `Box<dyn Error>` → 型付き enum / **`.await` 跨ぎの `MutexGuard`**・async 内のブロッキング / newtype と enum による型駆動設計 / `#[allow]` の増加検出）
 - **Coverage Review** は 400/401/403/404/409/422、外部 API 失敗、DB 制約違反、**整数オーバーフロー・`None`/空コレクション経路・エラー variant ごとの返却**まで含むマトリクスで抜けを埋めます
 - **Optimize** は `rstest` パラメータ化・ビルダー抽出・`#[sqlx::test]` の fixtures 活用。ランダム順序が stable で使えない代わりに **`--test-threads=1` と既定並列の双方・`cargo nextest`・反復実行**で独立性を検証します
 

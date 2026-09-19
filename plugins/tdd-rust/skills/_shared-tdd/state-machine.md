@@ -42,9 +42,9 @@
 4. 機密情報の検出（コミット前）。
 5. 状態 JSON の整合性検証に失敗。
 6. リトライ上限（Green は最大3回）到達。
-7. **pre-commit hook（cargo-husky / pre-commit / lefthook）または `just lint` でコミットがブロックされた**（`cargo fmt --check` / `cargo clippy -D warnings`）→ 修正して再試行、解決不能なら停止して報告。
+7. **pre-commit hook（cargo-husky / pre-commit / lefthook）または `just lint` でコミットがブロックされた**（`cargo fmt --check` / `cargo clippy -- -D warnings`）→ 修正して再試行、解決不能なら停止して報告。
 8. **`unsafe` / `unwrap()` / 無闇な `clone()` / `#[allow(clippy::...)]` でしか通らない**、または **borrow checker のエラーがモジュール構造の変更を要求する** → 設計の問題として停止し報告。
 
 ## Linter / 静的解析（コミット時に hook が自動実行）
 
-rustfmt + clippy。Refactor フェーズで明示実行も可（`cargo fmt --all` / `cargo clippy --all-targets --all-features -- -D warnings`）。型検査はコンパイル自体（`cargo check --all-targets`）。
+rustfmt + clippy。Refactor フェーズで明示実行も可（`cargo fmt --all` / `cargo clippy --all-targets -- -D warnings`）。型検査はコンパイル自体（`cargo check --all-targets`）。

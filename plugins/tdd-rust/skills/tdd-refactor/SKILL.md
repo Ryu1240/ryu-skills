@@ -13,6 +13,7 @@ allowed-tools:
   - Bash(just:*)
   - Grep
   - Glob
+  - Bash(date:*)
 examples:
   - input: /tdd-refactor tdd-20260613-101500
     description: Execute Refactor phase for the current cycle
@@ -46,7 +47,7 @@ let rows = repo.find_by_ids(&ids).await?;                 // ✅ 一括取得（
 `futures::future::join_all` で並列化しても **N 本のクエリは N 本のまま**（N+1 の解決ではない）。JOIN / `ANY($1)` / バッチで 1 クエリに。**ループ内 `.await` はレビュー対象**。
 
 ### 2-3. エラー処理の一貫性
-- 非テストコードの **`unwrap()` / `expect()` / `panic!`** を `?` と variant に置換（不変条件#5）。
+- 非テストコードの **`unwrap()` / `expect()` / `panic!`** を `?` と variant に置換（不変条件#5。理由付きの `expect("…")` による不変条件の表明は残してよい）。
 - `Box<dyn Error>` / `anyhow` がドメイン・サービス層に漏れていれば型付き enum に。
 - 同じ `map_err(|e| LedgerError::Db(e))` の繰り返しは `#[from]` / `impl From` に集約。
 - `let _ = fallible();` の握り潰し、`if let Err(_) = ... {}` の空腕を解消。
@@ -73,15 +74,15 @@ let rows = repo.find_by_ids(&ids).await?;                 // ✅ 一括取得（
 ### 2-7. フォーマット / lint
 ```bash
 cargo fmt --all
-cargo clippy --all-targets --all-features -- -D warnings
+cargo clippy --all-targets -- -D warnings
 ```
 今サイクルで **`#[allow(clippy::...)]` / `#[allow(dead_code)]` が増えていないか** Grep で確認。増えていれば根本を直す（直せなければ停止条件#8 として報告）。
 
 ## 3. テスト維持確認
 ```bash
-cargo test -p {crate} {module_path}::
+cargo test -p {crate}
 ```
-モジュール内の全件 pass を維持していることを確認。失敗したら参照ミス（移動したモジュールの `use`、トレイト境界、フェイクの更新漏れ）を修正、または `[r]修正 / [u]ロールバック / [s]停止`。
+クレート内の全件 pass（統合テスト含む）を維持していることを確認（名前フィルタはコンパイル量を減らさず、レイヤー間の移動は他モジュールや `tests/` のテストで壊れるため、Refactor はクレート単位で流す）。失敗したら参照ミス（移動したモジュールの `use`、トレイト境界、フェイクの更新漏れ）を修正、または `[r]修正 / [u]ロールバック / [s]停止`。
 
 ## 4. 状態更新
 `current-cycle.json` を Edit: `phase:"refactor"`, `refactor_details`（`layer_fixes` / `n_plus_one` / `error_handling` / `ownership` / `async_fixes` / `type_design` / `naming` / `linter`。空オブジェクト不可。何もなければ `{"note":"no refactor needed"}`）, `updated_at`。
