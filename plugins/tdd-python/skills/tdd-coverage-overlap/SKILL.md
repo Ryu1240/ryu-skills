@@ -35,6 +35,7 @@ Coverage モードは pytest-cov に依存する。**未導入のままでは動
 ## モード判定（引数）
 - `$0` が `tdd-` → `workflow-{id}.json` の `completed_cycles` から `test_files`（`$1` で限定）。
 - `$0` がファイルパス → `test_files=[$0]`、`workflow_id="standalone-{date +%Y%m%d-%H%M%S}"`。
+- ワークフローモードの入口ゲート: `current-cycle.json` が不在（サイクル進行中でない）であること。進行中に実行すると未コミットの Red / Green を巻き込むので中断。
 - **スコープ厳守**: 確定した `test_files` 以外を対象にしない（以降の Grep/Read/pytest はこの集合のみ）。
 
 ## SP1: Pre-flight（pytest-cov 確認 + ベースライン）

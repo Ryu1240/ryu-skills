@@ -131,7 +131,7 @@ plugin 同梱テンプレ（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/project-se
 - **不変条件**: DB を使わないなら 3 のロールバック記述を調整、Zod 未導入なら 5 を実際のスキーマ検証手段に置換（無ければ削除）、レイヤー名は 6 を実態に合わせる。
 
 ### 5-2. `commit-convention.md` / `workflow-schema.md` / `state-machine.md`
-plugin 同梱の **テンプレ**（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/{filename}`）を Read してそのまま Write する（プロジェクト固有差分は project-settings.md に集約）。`${CLAUDE_PLUGIN_ROOT}` が解決できない環境では `plugins/tdd-node/skills/_shared-tdd/{filename}` を相対 Read する。
+plugin 同梱の **テンプレ**（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/{filename}`）を Read して Write する（プロジェクト固有差分は project-settings.md に集約）。ただし **3 ファイルの見出しのリポ名**（`— order-api`）は実プロジェクト名に置換し、`commit-convention.md` の「pre-commit hook あり（husky + lint-staged）」の段落は検出結果に合わせる（hook 無しなら「hook が無いため、コミット前に lint / typecheck を手動実行する」に書き換える）。`${CLAUDE_PLUGIN_ROOT}` が解決できない環境では `plugins/tdd-node/skills/_shared-tdd/{filename}` を相対 Read する。
 
 ### 5-3. 自己検証（必須）
 生成した `project-settings.md` を Read し直し、テスト実行コマンドが実在するか（`package.json` の `scripts` と整合するか）を確認する。
@@ -142,11 +142,12 @@ plugin 同梱の **テンプレ**（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/{f
 
 ### 6-1. 現状確認
 ```bash
-git check-ignore -q .claude/tdd-workflow/ && echo ignored || echo not-ignored
+git check-ignore -q .claude/tdd-workflow/
 ```
-- **既に無視されている** → 何もせず次へ（サマリで「設定済み」と報告）。
-- **無視されていない** → 6-2 へ。
-- git 管理下でない（コマンドが失敗する）→ このステップをスキップ。
+終了コードで判定する（`echo` を繋がない。128 を「未無視」と誤認しないため）:
+- **0（既に無視されている）** → 何もせず次へ（サマリで「設定済み」と報告）。
+- **1（無視されていない）** → 6-2 へ。
+- **128（git 管理下でない）** → このステップをスキップ。
 
 ### 6-2. ユーザーに確認（AskUserQuestion・必須）
 「TDD ワークフローの状態ファイルを git 管理から除外しますか？」として次を提示する:

@@ -27,6 +27,9 @@ TDD 完了後、taskcli のテスト網羅性を「対象 × テストカテゴ�
 
 > pytest-cov は未導入のため coverage% は使わない。「対象 × カテゴリ」のマトリクスで漏れを検出する。
 
+## 入口ゲート
+`current-cycle.json` が**存在しないこと**（サイクル進行中でない）と `completed_cycles` 非空を確認。進行中なら `/tdd-commit {id}` を案内し中断。
+
 ## 1. コンテキスト
 `workflow-{id}.json`（`target_module`, `task_title`, `completed_cycles`, `todo_task_id`）を Read。
 `completed_cycles` から対象テストファイル・実装ファイルを収集して Read。

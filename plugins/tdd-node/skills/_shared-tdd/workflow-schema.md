@@ -20,11 +20,12 @@
   "status": "planning_done | in_progress | done",
   "task_title": "string",
   "task_content": "string",
+  "task_content_history": [],                // 任意。tdd-workflow-update が task_content を上書きした際の旧値
   "task_source": "notion | free-text | conversation-context",
   "notion_url": "string | null",
   "target_files": {
     "implementation": ["src/routes/... | src/services/... | src/repositories/..."],
-    "test": "src/.../*.test.ts",
+    "test": ["src/services/inventory.test.ts", "src/routes/orders.test.ts"],   // サイクルごとに異なりうるので配列
     "schemas": ["src/schemas/*.ts"],              // Zod スキーマを触る場合
     "factories": ["src/testUtils/factory/*.ts"],  // テストデータを足す場合
     "mocks": ["src/testUtils/mocks/handlers/..."] // 外部 API を叩く場合（MSW）
@@ -45,9 +46,9 @@
   "current_cycle": 1,
   "todo_task_id": "string",
   "completed_cycles": [
-    {"cycle_number": 1, "commit": "sha", "test_file_path": "...", "implementation_files": ["..."]}
+    {"cycle_number": 1, "title": "string", "commit": "sha", "test_file_path": "...", "test_name": "...", "implementation_files": ["..."]}
   ],
-  "coverage_review": null,
+  "coverage_review": null,                    // 完了後は {"before": 0, "after": 0, "added": ["..."], "commit": "sha", "completed_at": "ISO8601"}
   "created_at": "ISO8601",
   "updated_at": "ISO8601"
 }
@@ -70,6 +71,7 @@ todo_task_id, completed_cycles, created_at, updated_at`
   "phase": "red | green | refactor",          // "commit" は付けない（commit 完了でこのファイル削除）
   "test_file_path": "string",
   "test_name": "string",                      // vitest の -t に渡すケース名
+  "test_case_count": 0,                       // Red 完了時点の test_file_path 内のケース数（it( / test( / it.each / test.each の定義数）。Evac(review) が増加を検出する基準値
   "test_details": {"total": 0, "passed": 0, "failed": 0, "error_type": "...", "error_message": "..."},
   "implementation_files": ["..."],            // green 以降
   "refactor_details": { },                    // refactor 以降（空オブジェクト不可）

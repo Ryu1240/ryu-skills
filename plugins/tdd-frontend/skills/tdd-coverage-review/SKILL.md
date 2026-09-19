@@ -24,6 +24,9 @@ TDD 完了後、storefront のテスト網羅性を「対象 × テストカテ�
 ## 共通契約（必ず Read）
 - `.claude/skills/_shared-tdd/project-settings.md`（テストコマンド）/ `workflow-schema.md` / `commit-convention.md`
 
+## 入口ゲート
+`current-cycle.json` が**存在しないこと**（サイクル進行中でない）と `completed_cycles` 非空を確認。進行中なら `/tdd-commit {id}` を案内し中断。
+
 ## 1. コンテキスト
 `workflow-{id}.json`（`task_title`, `completed_cycles`, `todo_task_id`）を Read。対象テスト・実装ファイル（component/composable/store）を Read。
 props/emits/公開返り値の一覧を実装から把握する。

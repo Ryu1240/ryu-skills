@@ -11,6 +11,8 @@ allowed-tools:
   - Bash(git:*)
   - Grep
   - Glob
+  - TaskGet
+  - Bash(date:*)
 examples:
   - input: /tdd-red tdd-20260613-101500
     description: Execute Red phase for the current cycle
@@ -82,8 +84,8 @@ cd taskcli && docker compose run --rm app pytest -v {rel_path} -k {keyword}
 予期しない失敗（`SyntaxError`/`NameError`/collection error）はテストコードの誤り → 修正して再実行。
 
 ## 5. 状態更新
-`current-cycle.json` を `workflow-schema.md` の current-cycle スキーマで Write（`phase:"red"`, `test_file_path`, `target_module`, `test_details`(error_type/message), `fixture_files_added`, `created_at`/`updated_at`）。
-`workflow-{id}.json` の `current_phase`（あれば）/`updated_at` を更新。
+`current-cycle.json` を `workflow-schema.md` の current-cycle スキーマで Write（`phase:"red"`, `test_file_path`, `target_module`, **`test_case_count`**（`test_file_path` 内の `def test_` の定義数。`@pytest.mark.parametrize` はケース数でなく定義数で数え、パラメータ追加は parametrize の要素数の増加として別途比較する。Evac(review) の基準値）, `test_details`(error_type/message), `fixture_files_added`, `created_at`/`updated_at`）。
+`workflow-{id}.json` の `updated_at` を更新。
 **自己検証**: 両ファイルを Read し `phase=="red"`・`updated_at` 更新を確認。
 
 ## 6. サマリ（簡潔）

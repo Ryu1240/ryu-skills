@@ -12,6 +12,7 @@ allowed-tools:
   - Bash(npm:*)
   - Grep
   - Glob
+  - Bash(date:*)
 examples:
   - input: /tdd-refactor tdd-20260613-101500
     description: Execute Refactor phase for the current cycle

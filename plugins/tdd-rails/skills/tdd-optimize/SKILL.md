@@ -29,6 +29,7 @@ TDD 完了後の sales-hub 向けテスト最適化。**テストの独立性を
 ## モード判定
 - `$0` が `tdd-` → ワークフローモード（`completed_cycles` から `test_files` 収集。`$1` でファイル限定）。
 - `$0` がファイルパス（`_spec.rb`）→ スタンドアロン（`test_files=[$0]`、`workflow_id="standalone-{date}"`）。
+- ワークフローモードの入口ゲート: `current-cycle.json` が不在（サイクル進行中でない）かつ `coverage_review` が記録済みであること。違反なら中断。
 
 ## SP1: Assessment（必要性判断）
 各テストファイルを Read し計測（Grep）:

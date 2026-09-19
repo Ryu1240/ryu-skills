@@ -20,11 +20,12 @@
   "status": "planning_done | in_progress | done",
   "task_title": "string",
   "task_content": "string",
+  "task_content_history": [],                // 任意。tdd-workflow-update が task_content を上書きした際の旧値
   "task_source": "notion | free-text | conversation-context",
   "notion_url": "string | null",
   "target_files": {
     "implementation": ["app/..."],
-    "test": "spec/.../*_spec.rb",
+    "test": ["spec/models/lead_spec.rb", "spec/requests/leads_spec.rb"],   // サイクルごとに異なりうるので配列
     "factories": ["spec/factories/*.rb"]
   },
   "patterns": {                               // 既存コードから抽出した踏襲ルール
@@ -42,9 +43,9 @@
   "current_cycle": 1,
   "todo_task_id": "string",
   "completed_cycles": [
-    {"cycle_number": 1, "commit": "sha", "test_file_path": "...", "implementation_files": ["..."]}
+    {"cycle_number": 1, "title": "string", "commit": "sha", "test_file_path": "...", "implementation_files": ["..."]}
   ],
-  "coverage_review": null,
+  "coverage_review": null,                    // 完了後は {"before": 0, "after": 0, "added": ["..."], "commit": "sha", "completed_at": "ISO8601"}
   "created_at": "ISO8601",
   "updated_at": "ISO8601"
 }
@@ -66,6 +67,7 @@ todo_task_id, completed_cycles, created_at, updated_at`
   "cycle_number": 3,
   "phase": "red | green | refactor",          // "commit" は付けない（commit 完了でこのファイル削除）
   "test_file_path": "string",
+  "test_case_count": 0,                       // Red 完了時点の test_file_path 内のケース数（it / specify / example / scenario の定義数。it_behaves_like / include_examples は 1）。Evac(review) が増加を検出する基準値
   "test_details": {"total": 0, "passed": 0, "failed": 0, "error_type": "...", "error_message": "..."},
   "implementation_files": ["..."],            // green 以降
   "refactor_details": { },                    // refactor 以降（空オブジェクト不可）

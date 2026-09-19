@@ -10,6 +10,7 @@ allowed-tools:
   - Bash
   - Grep
   - Glob
+  - TaskGet
 examples:
   - input: /tdd-red tdd-20260613-101500
     description: Execute Red phase for the current cycle
@@ -61,7 +62,7 @@ project-settings の `{{TEST_ONE_CASE}}`（単一ケース実行）を使う。`
 **予期しない失敗**（構文エラー・import/パス誤り・セットアップ漏れ・テスト自体のバグ）は**テスト側を修正して再実行**。実装を書き始めてはいけない。
 
 ## 7. 状態更新
-`current-cycle.json` を workflow-schema 準拠で Write（`phase:"red"`, `test_file_path`, **`test_case_id`**（単一ケース実行に使う識別子）, `test_details`(error_type/message), `created_at`/`updated_at`）。
+`current-cycle.json` を workflow-schema 準拠で Write（`phase:"red"`, `test_file_path`, **`test_case_id`**（単一ケース実行に使う識別子）, **`test_case_count`**（`test_file_path` 内のケース定義の数。`patterns.test_case_style` / project-settings の「ケース記述スタイル」の構文で数える。Evac(review) の基準値）, `test_details`(error_type/message), `created_at`/`updated_at`）。
 **自己検証**: Read で `phase=="red"`・`updated_at` 更新を確認。
 
 ## 8. サマリ（簡潔）

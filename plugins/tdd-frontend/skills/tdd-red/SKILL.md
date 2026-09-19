@@ -12,6 +12,8 @@ allowed-tools:
   - Bash(npm:*)
   - Grep
   - Glob
+  - TaskGet
+  - Bash(date:*)
 examples:
   - input: /tdd-red tdd-20260613-101500
     description: Execute Red phase for the current cycle
@@ -92,7 +94,7 @@ beforeEach(() => setActivePinia(createPinia()))   // 各テストで新規＝独
 予期しない失敗（構文エラー・import パス誤り・Pinia 未初期化・MSW server 未起動）はテスト側を修正して再実行。
 
 ## 5. 状態更新
-`current-cycle.json` を workflow-schema 準拠で Write（`phase:"red"`, `test_file_path`, `test_details`(error_type/message), `created_at`/`updated_at`）。
+`current-cycle.json` を workflow-schema 準拠で Write（`phase:"red"`, `test_file_path`, **`test_case_count`**（`test_file_path` 内の `it(` / `test(` / `it.each` / `test.each` の定義数。Evac(review) の基準値）, `test_details`(error_type/message), `created_at`/`updated_at`）。
 **自己検証**: Read で `phase=="red"`・`updated_at` 更新を確認。
 
 ## 6. サマリ（簡潔）

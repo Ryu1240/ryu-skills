@@ -22,6 +22,9 @@ TDD 完了後、テスト網羅性を「対象 × テストカテゴリ」のマ
 ## 共通契約（必ず Read）
 - `.claude/skills/_shared-tdd/project-settings.md`（テスト実行コマンド・言語固有の慣習）/ `workflow-schema.md` / `commit-convention.md`
 
+## 入口ゲート
+`current-cycle.json` が**存在しないこと**（サイクル進行中でない）と `completed_cycles` 非空を確認。進行中なら `/tdd-commit {id}` を案内し中断。
+
 ## 1. コンテキスト
 `workflow-{id}.json`（`task_title`, `completed_cycles`, `patterns`, `todo_task_id`）を Read。対象テスト・実装ファイルを Read。
 実装から**公開インターフェイス**（関数/メソッド/エンドポイント/コマンド/イベント）を列挙し、マトリクスの行にする。

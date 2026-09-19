@@ -10,6 +10,8 @@ allowed-tools:
   - Bash(git:*)
   - Bash(bundle:*)
   - Bash(docker:*)
+  - Bash(rm .claude/tdd-workflow/:*)
+  - Bash(date:*)
 examples:
   - input: /tdd-commit tdd-20260613-101500
     description: Execute Commit phase for the current cycle

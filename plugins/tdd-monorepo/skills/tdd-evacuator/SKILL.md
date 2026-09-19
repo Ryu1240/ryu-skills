@@ -44,7 +44,7 @@ Red→Green→Refactor→Commit の間で、retail-hub のコード品質とテ�
 
 ## Review mode の評価項目
 - plan で指摘した項目が実装に反映されたかを Read/Grep で確認。
-- **新規テストが追加されていないこと**を確認（Refactor 原則）: `git diff HEAD {test_file}` で新規 `it` があれば warning。
+- **新規テストが追加されていないこと**を確認（Refactor 原則）: `test_file_path` を Read してケース定義（backend=RSpec の `it` / `specify` / `example`、frontend=Vitest の `it(` / `test(` / `it.each` / `test.each`）の数を数え、`current-cycle.json` の **`test_case_count`**（Red 完了時点の値）と比較する。増えていれば warning。`git diff HEAD` との比較は**使わない**（Red で追加したテストも未コミットなので必ず差分に出て、常に誤検知になる）。
 - テストが pass している前提（`current-cycle.json` `phase=="refactor"`）。
 
 ## Boundary mode の提案項目

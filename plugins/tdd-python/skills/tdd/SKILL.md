@@ -15,6 +15,8 @@ allowed-tools:
   - Edit
   - Bash(date:*)
   - Bash(git:*)
+  - Bash(mkdir .claude/tdd-workflow/:*)
+  - Bash(mv .claude/tdd-workflow/:*)
   - Bash(docker:*)
   - Grep
   - Glob
@@ -108,7 +110,7 @@ examples:
   ```
   進行中ワークフローを検出: {workflow_id}
     タスク: {task_title}
-    進捗: サイクル {current_cycle-1}/{total_cycles} 完了、現在 {current_phase}
+    進捗: サイクル {current_cycle-1}/{total_cycles} 完了、現在 {current-cycle.json の phase。不在なら「次サイクル Red 待ち」}
   [Enter] このワークフローを再開（Phase 4 へ） / [n] 無視して会話文脈から新規計画（Phase 1c）
   ```
 - 無ければ Phase 1c（会話文脈から計画）。

@@ -11,6 +11,7 @@ allowed-tools:
   - Bash(git:*)
   - Grep
   - Glob
+  - Bash(date:*)
 examples:
   - input: /tdd-green tdd-20260613-101500
     description: Execute Green phase for the current cycle
@@ -57,7 +58,7 @@ cd taskcli && docker compose run --rm app pytest -v {rel_path}
 
 ## 4. 状態更新
 `current-cycle.json` を Edit: `phase:"green"`, `test_details`（passed/total/failed:0）, `implementation_files`（非空）, `retry_count`。
-`workflow-{id}.json` の `updated_at`（/`current_phase`）更新。
+`workflow-{id}.json` の `updated_at` 更新。
 **自己検証**: `phase=="green"` かつ `implementation_files` 非空を Read で確認。
 
 ## 5. サマリ（簡潔）
