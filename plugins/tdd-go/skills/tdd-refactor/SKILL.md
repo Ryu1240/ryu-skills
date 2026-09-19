@@ -14,6 +14,7 @@ allowed-tools:
   - Bash(make:*)
   - Grep
   - Glob
+  - Bash(date:*)
 examples:
   - input: /tdd-refactor tdd-20260613-101500
     description: Execute Refactor phase for the current cycle
@@ -44,7 +45,7 @@ TDD の Refactor フェーズ。**動作を変えずに**コード品質を改�
 for _, id := range ids { item, err := repo.FindByID(ctx, id) }   // ❌ N+1
 items, err := repo.FindByIDs(ctx, ids)                          // ✅ 一括取得（WHERE id = ANY($1)）
 ```
-sqlc なら一括取得クエリ（`= ANY(sqlc.slice(...))` / `IN`）を追加、GORM/ent なら `Preload` / `With...` でまとめる。**ループ内のクエリ呼び出しはレビュー対象**。
+sqlc なら一括取得クエリ（PostgreSQL は `WHERE id = ANY($1::int[])`、MySQL / SQLite は `WHERE id IN (sqlc.slice('ids'))`）を追加、GORM/ent なら `Preload` / `With...` でまとめる。**ループ内のクエリ呼び出しはレビュー対象**。
 
 ### 2-3. エラー処理の一貫性
 - **`%w` ラップの一貫性**: 下位エラーを返す箇所が `%v` / 素の `return err`（文脈なし）/ 独自の `errors.New` で情報を落としていないか。文脈（何をしようとして失敗したか）を付けて `%w` で包む。
@@ -53,7 +54,7 @@ sqlc なら一括取得クエリ（`= ANY(sqlc.slice(...))` / `IN`）を追加�
 - エラーメッセージに内部情報（SQL・DSN・スタック）を載せない。`panic` を `error` 返却に直す。
 
 ### 2-4. 並行性と context
-- **goroutine リーク**: 起動した goroutine の終了を待っていない / `ctx` キャンセルで抜けない箇所。`errgroup.Group` か `sync.WaitGroup` に統一。
+- **goroutine リーク**: 起動した goroutine の終了を待っていない / `ctx` キャンセルで抜けない箇所。`errgroup.Group`（`golang.org/x/sync` 導入済みの場合）か `sync.WaitGroup` に統一（未導入リポへの `x/sync` 追加は停止条件#2）。
 - **`defer cancel()` 漏れ**: `context.WithTimeout` / `WithCancel` の直後に `defer cancel()` が無い。
 - **ループ内 `defer`**: 関数終了まで解放されない（`rows.Close()` / `tx.Rollback()` / ファイル）。ループ本体を関数に切り出す。
 - **mutex の保持範囲**: I/O をロック中に行っていないか。保持区間を最小に。`-race` で検出されたレースは停止条件#8。

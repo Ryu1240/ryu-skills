@@ -13,6 +13,8 @@ allowed-tools:
   - Bash(make:*)
   - Grep
   - Glob
+  - TaskGet
+  - Bash(date:*)
 examples:
   - input: /tdd-red tdd-20260613-101500
     description: Execute Red phase for the current cycle
@@ -112,17 +114,21 @@ func TestShipmentHandler_Create(t *testing.T) {
 
 ## 4. 失敗確認
 ```bash
-go test {test_package_dir} -run '{TestFunc}/{サブテスト名（空白は _ に置換）}' -count=1 -v
+go test {test_package_dir} -run '^{TestFunc}$/^{サブテスト名（空白は _ に置換、メタ文字は \ でエスケープ）}$' -count=1 -v
 ```
 （`Makefile` に単一ケース実行ターゲットがあれば project-settings に従う。integration タグがあれば `-tags=integration`。）
 
 期待される失敗: **コンパイルエラー（未定義の関数 / 型 / メソッド / sentinel error）**、`status = 404, want 409`、`error = <nil>, want ErrOutOfStock`、`cmp.Diff` の差分、アサーション不一致。Go では「未定義でコンパイルが通らない」が最も典型的な Red であり、これは正しい失敗。
-**予期しない失敗**（import cycle、`package` 名の不一致、`go mod tidy` 未実行で依存が解決しない、ビルドタグ漏れで `no tests to run`、`go vet` エラー、フェイクのメソッド漏れ）は**テスト側を修正して再実行**。実装を書き始めてはいけない。
+**予期しない失敗**（import cycle、`package` 名の不一致、`go mod tidy` 未実行で依存が解決しない、ビルドタグ漏れで `[no tests to run]` / `[no test files]`、`go vet` エラー、フェイクのメソッド漏れ）は**テスト側を修正して再実行**。実装を書き始めてはいけない。
 
-> `-v` の出力に `--- FAIL: TestX/sub_case` が**実際に出ている**ことを確認する。`ok` / `no tests to run` は失敗ではない（`-run` の正規表現ミスかタグ漏れ）。
+> 失敗の確認は出力で行う。正しい Red は次の**どちらか**:
+> - **コンパイルエラー**: `FAIL {pkg} [build failed]` と `undefined: Xxx` が出る（`-run` は無視され、パッケージ全体のテストバイナリが作れない。`--- FAIL` 行は出ない）。
+> - **実行時の失敗**: `-v` の出力に `--- FAIL: TestX/sub_case` が**実際に出ている**。
+>
+> `ok` で終わった場合は失敗ではない。`-run` のサブテスト部分が何にも一致しないと **`no tests to run` は出ず、親テストが `--- PASS` になって `ok`** で終わるので、`=== RUN TestX/sub_case` が出ているかを必ず見る。`[no tests to run]` / `[no test files]` はタグ漏れ。
 
 ## 5. 状態更新
-`current-cycle.json` を workflow-schema 準拠で Write（`phase:"red"`, `test_file_path`, **`test_package_dir`**（`go test` に渡すディレクトリ）, **`test_name`**（`-run` に渡す `TestFunc/sub_case` 正規表現）, `test_details`(error_type/message), `created_at`/`updated_at`）。
+`current-cycle.json` を workflow-schema 準拠で Write（`phase:"red"`, `test_file_path`, **`test_package_dir`**（`go test` に渡すディレクトリ。`./` 始まり）, **`test_name`**（`-run` に渡す `^TestFunc$/^sub_case$` 正規表現）, **`test_case_count`**（`test_file_path` 内の `func Test` + `t.Run(` の数。Evac(review) の基準値）, `test_details`(error_type/message。コンパイルエラーなら `error_type:"compile_error_undefined"`、total/passed/failed は 0), `created_at`/`updated_at`）。
 **自己検証**: Read で `phase=="red"`・`updated_at` 更新を確認。
 
 ## 6. サマリ（簡潔）
@@ -131,4 +137,4 @@ go test {test_package_dir} -run '{TestFunc}/{サブテスト名（空白は _ �
 ## エラー
 - テストファイル決定不能: `$1` 明示 or タスクに対象名（handler/service 名）追記を案内。
 - フェイク / ファクトリ未定義: `internal/testutil/` を確認し、テストファイル内に最小の `type fakeXxx struct` を定義するか追加を促す。
-- コンパイルエラーでテストが書けない: 実装側の型・関数が未定義なのが原因なら**それが期待される失敗**（そのまま Green へ）。設計上の型の矛盾（インターフェイスの循環・import cycle）なら停止条件#8 として報告。
+- コンパイルエラーでテストが書けない: 実装側の型・関数が未定義なのが原因なら**それが期待される失敗**（そのまま Green へ）。設計上の型の矛盾（インターフェイスの循環・import cycle）はレイヤー構成の変更を要するので停止条件#2（設計判断）として報告。

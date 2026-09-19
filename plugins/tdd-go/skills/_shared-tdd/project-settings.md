@@ -17,7 +17,7 @@
 | テストデータ | ビルダー/ファクトリ関数（`internal/testutil/factory/`）。固定入力・golden file は `testdata/` |
 | モック | 利用側パッケージで定義した小さなインターフェイスに**手書きフェイク**を注入（`internal/testutil/` または `_test.go` 内）。gomock / mockery / moq（`go generate`）のリポではそれに従う |
 | 外部 HTTP API | `httptest.NewServer` で応答を差し替え（`t.Cleanup(srv.Close)`）。**実通信はしない** |
-| DB | `database/sql` + sqlc / sqlx / pgx（GORM / ent でも可）。テストは各ケースでトランザクション開始→`t.Cleanup(tx.Rollback)`。純ユニットなら `go-sqlmock` |
+| DB | `database/sql` + sqlc / sqlx / pgx（GORM / ent でも可）。テストは各ケースでトランザクション開始→`t.Cleanup(func() { _ = tx.Rollback() })`。純ユニットなら `go-sqlmock` |
 | 時刻 / 乱数 | `func() time.Time` / `Clock` インターフェイスで注入 |
 | カバレッジ | `go test -coverprofile` + `go tool cover -func` |
 
@@ -34,20 +34,20 @@ internal/domain/      … 型・sentinel error。何にも依存しない（末�
 ## テスト実行コマンド
 
 ```bash
-go test ./internal/service/ -run 'TestInventoryService_Reserve/returns_ErrOutOfStock_when_stock_is_insufficient' -count=1 -v   # 単一ケース（Red の失敗確認・独立性検証）
+go test ./internal/service/ -run '^TestInventoryService_Reserve$/^returns_ErrOutOfStock_when_stock_is_insufficient$' -count=1 -v   # 単一ケース（Red の失敗確認・独立性検証。要素ごとに ^…$ で完全一致）
 go test ./internal/service/ -count=1                                       # 単一パッケージ（Green/Refactor の pass 確認）
 go test ./... -count=1                                                     # 全件（CI 同様）
 go test ./internal/service/ -count=1 -shuffle=on -race                     # ランダム順序 + レース検出（Optimize の独立性検証）
-go test ./... -coverprofile=coverage.out && go tool cover -func=coverage.out   # カバレッジ
+go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out   # カバレッジ
 go vet ./... && golangci-lint run ./...                                    # 静的解析
-gofmt -l -w . && goimports -w .                                            # フォーマット（goimports 未導入なら gofmt のみ）
+gofmt -l -w {files} && goimports -w {files}                                # フォーマット（変更ファイルに限定。`.` 全体だと vendor/ や testdata/ まで書き換える。goimports 未導入なら gofmt のみ）
 ```
 > - Go のテスト実行単位は「ファイル」ではなく**パッケージ**。`{path}` にはテストファイルの**ディレクトリ**（`./internal/service/`）を渡す。
-> - サブテスト名の**空白は `_` に置換**される（`t.Run("returns ErrOutOfStock when stock is insufficient", ...)` → `-run 'TestX/returns_ErrOutOfStock_when_stock_is_insufficient'`）。
+> - `-run` は**要素ごとに `^…$` で完全一致**させる（`-run '^TestX$/^sub_case$'`）。前方一致のままだと `TestXY` や `sub_case_extra` も走り「単独実行」にならない。サブテスト名の**空白は `_` に置換**される（`t.Run("returns ErrOutOfStock when stock is insufficient", ...)` → `^returns_ErrOutOfStock_when_stock_is_insufficient$`）。`(` `)` `+` `?` 等の正規表現メタ文字が名前に含まれる場合は `\` でエスケープする（テーブル駆動の `name` には最初から使わないのが安全）。同名の `name` を 2 行書くと `#01` が付いて別ケースになるので重複させない。
 > - `-shuffle=on` が並べ替えるのは**トップレベルの `TestXxx` の順序だけ**（テーブル駆動のサブテストは定義順のまま）。サブテスト間の順序依存は `-run` での単独実行で炙り出す。
-> - `-count=1` は**テストキャッシュを無効化**するため必須（キャッシュが当たると Red の失敗や Refactor 後の再実行が「実行されずに pass」する）。
+> - `-count=1` は**テストキャッシュを無効化**するため必須。`go test` は成功結果をキャッシュし、ソース変更は追跡するが**外部状態（DB の中身・環境変数・ファイル）の変化は追跡しない**。DB を触るテストは前回成功のキャッシュが返って「実行されずに ok」になりうる（失敗結果はキャッシュされないので Red には影響しないが、Green / Refactor / Optimize の再実行で効く）。
 > - `Makefile` / `justfile` に `test` / `lint` ターゲットがあればそれを最優先で使う（bootstrap が検出して差し替える）。
-> - DB を叩く integration テストを `//go:build integration` で分離しているリポでは `-tags=integration` を付ける（付け忘れると「テストが走らずに pass」する）。
+> - DB を叩く integration テストを `//go:build integration` で分離しているリポでは `-tags=integration` を付ける。付け忘れると `ok … [no tests to run]`（他のテストが同居）または `?  … [no test files]`（タグ付きファイルだけのパッケージ）と出て、**走っていないのに終了コード 0** になる。
 
 ## CI / hook（重要）
 

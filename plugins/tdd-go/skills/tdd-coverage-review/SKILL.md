@@ -26,6 +26,9 @@ TDD 完了後、shipment-api のテスト網羅性を「対象 × テストカ�
 ## 共通契約（必ず Read）
 - `.claude/skills/_shared-tdd/project-settings.md`（テストコマンド・レイヤー構成）/ `workflow-schema.md` / `commit-convention.md`
 
+## 入口ゲート
+`current-cycle.json` が**存在しないこと**（サイクル進行中でない）と `completed_cycles` 非空を確認。進行中なら `/tdd-commit {id}` を案内し中断。
+
 ## 1. コンテキスト
 `workflow-{id}.json`（`task_title`, `completed_cycles`, `patterns`, `todo_task_id`）を Read。対象テスト・実装ファイルを Read。
 実装から**公開インターフェイス**を列挙してマトリクスの行にする（handler ならエンドポイント×メソッド、service なら公開メソッド、repository なら公開クエリ、domain なら各型・検証関数）。
@@ -61,7 +64,7 @@ go test {pkgs} -count=1 -coverprofile=coverage.out && go tool cover -func=covera
 
 ## 4. 追加・実行
 選択分を対応テストファイルの適切な `TestXxx` / テーブルに追加（既存は変更しない。フェイク / ファクトリも必要に応じ追加。既存の `package` 宣言・アサーションライブラリに合わせる）。
-**独立性を維持**: DB はトランザクション + `t.Cleanup(tx.Rollback)`、`httptest.NewServer` は `t.Cleanup(srv.Close)`、パッケージレベル変数を書き換えない。
+**独立性を維持**: DB はトランザクション + `t.Cleanup(func() { _ = tx.Rollback() })`、`httptest.NewServer` は `t.Cleanup(srv.Close)`、パッケージレベル変数を書き換えない。
 ```bash
 go test {pkgs} -count=1 -race
 ```

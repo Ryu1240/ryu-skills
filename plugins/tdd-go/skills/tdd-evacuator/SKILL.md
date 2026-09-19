@@ -34,14 +34,14 @@ Red→Green→Refactor→Commit の間で、shipment-api のコード品質と�
 
 ### テスト妥当性
 - 計画（`cycle_plan`）と実装テストの一致。
-- **独立性の担保**: DB を使うテストにトランザクション + `t.Cleanup(tx.Rollback)` があるか、`httptest.NewServer` に `t.Cleanup(srv.Close)` があるか、パッケージレベル変数を書き換えて戻していないか、`t.Parallel()` を付けたケースが共有可変状態を触っていないか。
+- **独立性の担保**: DB を使うテストにトランザクション + `t.Cleanup(func() { _ = tx.Rollback() })` があるか、`httptest.NewServer` に `t.Cleanup(srv.Close)` があるか、パッケージレベル変数を書き換えて戻していないか、`t.Parallel()` を付けたケースが共有可変状態を触っていないか。
 - **フェイクの粒度**: gomock 等で巨大インターフェイスを丸ごとモックしている箇所は、利用側の小さなインターフェイス + 手書きフェイクに置き換えられないか（不変条件#4）。過剰モックは実装変更に脆いテストを生む。
 - **アサーション強度**: `rec.Code` だけ見て body を検証していない、`err != nil` だけで `errors.Is` による種別判定が無い、`if got == nil` 止まり。`t.Fatal` と `t.Error` の使い分け（後続の検証が無意味なら `Fatal`）。
-- **`go test` の罠**: `-run` の正規表現がサブテスト名（空白→`_`）と一致しているか、integration タグの付け忘れで「走っていないのに ok」になっていないか。
+- **`go test` の罠**: `-run` の正規表現がサブテスト名（空白→`_`）と一致しているか、integration タグの付け忘れで `[no tests to run]` / `[no test files]` のまま終了コード 0 になっていないか。
 
 ## Review mode の評価項目
 - plan で指摘したレイヤー/N+1/エラー/並行性/インターフェイスが実装に反映されたかを Read/Grep で確認。
-- **新規テストが追加されていないこと**を確認（Refactor 原則）: `git diff HEAD -- {test_file} | grep -E "^\+.*(func Test|t\.Run\()"`。新規 `func Test` / `t.Run(` があれば warning（テーブル駆動の行追加も `git diff` で `name:` の増加を確認）。
+- **新規テストが追加されていないこと**を確認（Refactor 原則）: `test_file_path` を Read して `func Test` + `t.Run(` の数を数え、`current-cycle.json` の **`test_case_count`**（Red 完了時点の値）と比較する。増えていれば warning。`git diff HEAD` との比較は**使わない**（Red で追加したテストも未コミットなので必ず差分に出て、常に誤検知になる）。テーブル駆動の行追加は `name:` の数で同様に比較。
 - **振る舞いが変わっていないこと**: `git diff` で条件分岐・ステータスコード・返却する sentinel error の変化がないか確認。
 - テストが pass している前提（`current-cycle.json` `phase=="refactor"`）。
 

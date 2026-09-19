@@ -71,7 +71,7 @@ Go プロジェクトを走査し、`.claude/skills/_shared-tdd/` 配下に proj
 `internal/` と `pkg/` 配下のディレクトリを列挙し、実際の層の名前を把握する（`handler` / `controller` / `api` / `transport` / `service` / `usecase` / `app` / `repository` / `store` / `infra` / `domain` / `model` / `entity` など）。**テンプレの `handler/service/repository/domain` を押し付けず、実態の名前を使う**。フラットな構成（`internal/` 直下にパッケージが並ぶ）ならそのまま記録する。
 
 ### 2-5. 独立性の担保方法の抽出
-既存テストのセットアップを 1〜2 件 Read し、実際にどう独立性を保っているか観察する（トランザクション + `t.Cleanup(tx.Rollback)` / truncate / testcontainers-go / dockertest / sqlmock / `TestMain` での DB 準備 / `t.TempDir()`）。`TestMain` がある場合はその中身も Read する（グローバル共有の有無）。
+既存テストのセットアップを 1〜2 件 Read し、実際にどう独立性を保っているか観察する（トランザクション + `t.Cleanup(func() { _ = tx.Rollback() })` / truncate / testcontainers-go / dockertest / sqlmock / `TestMain` での DB 準備 / `t.TempDir()`）。`TestMain` がある場合はその中身も Read する（グローバル共有の有無）。
 
 ### 2-6. 検出結果の提示
 ```
@@ -105,7 +105,7 @@ Go プロジェクトを走査し、`.claude/skills/_shared-tdd/` 配下に proj
 
 - **対象モジュール**（マルチモジュール検出時）: 候補を選択肢に。
 - **プロジェクト種別が CLI だった場合**: HTTP 前提の節（handler 層・`httptest`・ステータスコード）を CLI 向けに読み替えて生成する旨を確認する。読み替え内容: レイヤーは `cmd/` + `internal/cli/`（コマンド定義）→ `internal/app` or `service`（ロジック）、テストは `cmd.Execute()` / `RunE` を `bytes.Buffer` で stdout/stderr を捕捉して検証、終了コードとエラーメッセージを契約とみなす。
-- **独立性の担保方法**（既存テストから抽出できなかった場合）: 「トランザクション + `t.Cleanup(tx.Rollback)`」「各ケースで truncate」「testcontainers-go / dockertest」「sqlmock（DB を使わない）」「DB を使わない（フェイクのみ）」「その他」から選択（複数可）。
+- **独立性の担保方法**（既存テストから抽出できなかった場合）: 「トランザクション + `t.Cleanup(func() { _ = tx.Rollback() })`」「各ケースで truncate」「testcontainers-go / dockertest」「sqlmock（DB を使わない）」「DB を使わない（フェイクのみ）」「その他」から選択（複数可）。
 - **テストパッケージの流儀**（`package foo` と `package foo_test` が混在する場合）: 新規テストをどちらで書くか確認。
 - **アサーションライブラリ**（go-cmp と testify が混在する場合）: 新規テストで使う方を確認。
 - **レイヤー構成の呼び方**（`internal/` の構成が想定と違う場合）: 実際の層名と依存方向を確認。
@@ -136,10 +136,10 @@ plugin 同梱テンプレ（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/project-se
 - **不変条件**: DB を使わないなら 3 のロールバック記述を調整、レイヤー名は 6 を実態に合わせる。CLI なら 6 の「handler → service → repository」を CLI の依存方向に書き換える。
 
 ### 5-2. `commit-convention.md` / `workflow-schema.md` / `state-machine.md`
-plugin 同梱の **テンプレ**（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/{filename}`）を Read してそのまま Write する（プロジェクト固有差分は project-settings.md に集約）。`${CLAUDE_PLUGIN_ROOT}` が解決できない環境では `plugins/tdd-go/skills/_shared-tdd/{filename}` を相対 Read する。
+plugin 同梱の **テンプレ**（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/{filename}`）を Read して Write する（プロジェクト固有差分は project-settings.md に集約）。ただし **3 ファイルの見出しのリポ名**（`— shipment-api`）は実プロジェクト名に置換し、`commit-convention.md` の「pre-commit hook あり」の段落は検出結果に合わせる（hook 無しなら「hook が無いため、コミット前に `make lint` 等を手動実行する」に書き換える）。`${CLAUDE_PLUGIN_ROOT}` が解決できない環境では `plugins/tdd-go/skills/_shared-tdd/{filename}` を相対 Read する。
 
 ### 5-3. 自己検証（必須）
-生成した `project-settings.md` を Read し直し、テスト実行コマンドが実在するかを確認する：`Makefile` のターゲット名と整合するか、`go list ./...` の出力にコマンド中のパッケージパスが含まれるか。可能なら `go test ./... -count=1 -run '^$'`（テストを 1 つも実行せずコンパイルだけ通す）を実行し、ビルドが通ることを確認する。
+生成した `project-settings.md` を Read し直し、テスト実行コマンドが実在するかを確認する：`Makefile` のターゲット名と整合するか、`go list ./...` の出力にコマンド中のパッケージパスが含まれるか。可能なら `go vet ./...` を実行し、`_test.go` を含めて型検査が通ることを確認する（`go test -run '^$'` は `TestMain` を実行してしまい DB 接続等が走るので使わない）。
 
 ## Step 6: ワークフロー状態の git 追跡設定（確認）
 
@@ -147,11 +147,12 @@ plugin 同梱の **テンプレ**（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/{f
 
 ### 6-1. 現状確認
 ```bash
-git check-ignore -q .claude/tdd-workflow/ && echo ignored || echo not-ignored
+git check-ignore -q .claude/tdd-workflow/
 ```
-- **既に無視されている** → 何もせず次へ（サマリで「設定済み」と報告）。
-- **無視されていない** → 6-2 へ。
-- git 管理下でない（コマンドが失敗する）→ このステップをスキップ。
+終了コードで判定する（`echo` を繋がない。128 を「未無視」と誤認しないため）:
+- **0（既に無視されている）** → 何もせず次へ（サマリで「設定済み」と報告）。
+- **1（無視されていない）** → 6-2 へ。
+- **128（git 管理下でない）** → このステップをスキップ。
 
 ### 6-2. ユーザーに確認（AskUserQuestion・必須）
 「TDD ワークフローの状態ファイルを git 管理から除外しますか？」として次を提示する:

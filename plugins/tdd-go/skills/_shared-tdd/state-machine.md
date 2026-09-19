@@ -42,9 +42,9 @@
 4. 機密情報の検出（コミット前）。
 5. 状態 JSON の整合性検証に失敗。
 6. リトライ上限（Green は最大3回）到達。
-7. **pre-commit hook（lefthook / pre-commit / husky）または `make lint` でコミットがブロックされた**（`gofmt` / `go vet` / `golangci-lint` エラー等）→ 修正して再試行、解決不能なら停止して報告。
+7. **pre-commit hook（lefthook / pre-commit）または `make lint` でコミットがブロックされた**（`gofmt` / `go vet` / `golangci-lint` エラー等）→ 修正して再試行、解決不能なら停止して報告。
 8. **静的検査を迂回する必要が生じた**: `//nolint` で黙らせる・`any`/`interface{}` と型アサーションで型を迂回する・`-race` でデータレースが検出された、のいずれかでしか通らない → 設計の問題として停止し報告。
 
 ## Linter / 静的解析（コミット時に hook が自動実行）
 
-`gofmt` / `goimports` + `go vet` + `golangci-lint`（`.golangci.yml`）。Refactor フェーズで明示実行も可（`gofmt -l -w . && go vet ./... && golangci-lint run ./...`）。データレースは `go test -race` で検出する。
+`gofmt` / `goimports` + `go vet` + `golangci-lint`（`.golangci.yml`）。Refactor フェーズで明示実行も可（`gofmt -l -w {files} && go vet ./... && golangci-lint run ./...`）。データレースは `go test -race` で検出する。

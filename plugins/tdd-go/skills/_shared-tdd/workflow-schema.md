@@ -20,18 +20,19 @@
   "status": "planning_done | in_progress | done",
   "task_title": "string",
   "task_content": "string",
+  "task_content_history": [],                // 任意。tdd-workflow-update が task_content を上書きした際の旧値
   "task_source": "notion | free-text | conversation-context",
   "notion_url": "string | null",
   "target_files": {
     "implementation": ["internal/handler/... | internal/service/... | internal/repository/..."],
-    "test": "internal/.../*_test.go",
+    "test": ["internal/service/inventory_test.go", "internal/handler/shipment_test.go"],   // サイクルごとに異なりうるので配列
     "domain": ["internal/domain/*.go"],           // 型・sentinel error を触る場合
     "fakes": ["internal/testutil/..."],           // 手書きフェイク / ファクトリを足す場合
     "migrations": ["db/migrations/..."]           // DB スキーマ変更を伴う場合
   },
   "patterns": {                               // 既存コードから抽出した踏襲ルール
     "test_kind": "handler | service | repository | domain | cli",
-    "layer": "handler | service | repository | domain",
+    "layer": "handler | service | repository | domain | cli",
     "uses_db": true,                           // トランザクションロールバックが要るか
     "uses_external_api": false,                // httptest.NewServer スタブが要るか
     "test_package": "external (foo_test) | internal (foo)",
@@ -47,9 +48,9 @@
   "current_cycle": 1,
   "todo_task_id": "string",
   "completed_cycles": [
-    {"cycle_number": 1, "commit": "sha", "test_file_path": "...", "implementation_files": ["..."]}
+    {"cycle_number": 1, "title": "string", "commit": "sha", "test_file_path": "...", "test_package_dir": "...", "test_name": "...", "implementation_files": ["..."]}
   ],
-  "coverage_review": null,
+  "coverage_review": null,                    // 完了後は {"before": 0, "after": 0, "added": ["..."], "commit": "sha", "completed_at": "ISO8601"}
   "created_at": "ISO8601",
   "updated_at": "ISO8601"
 }
@@ -71,9 +72,10 @@ todo_task_id, completed_cycles, created_at, updated_at`
   "cycle_number": 3,
   "phase": "red | green | refactor",          // "commit" は付けない（commit 完了でこのファイル削除）
   "test_file_path": "string",                 // 例 internal/service/inventory_test.go
-  "test_package_dir": "string",               // 例 ./internal/service/（go test に渡すのはディレクトリ）
-  "test_name": "string",                      // go test -run に渡す正規表現（例 TestInventoryService_Reserve/returns_ErrOutOfStock_when_stock_is_insufficient）
-  "test_details": {"total": 0, "passed": 0, "failed": 0, "error_type": "...", "error_message": "..."},
+  "test_package_dir": "string",               // 例 ./internal/service/（go test に渡すのはディレクトリ。必ず ./ 始まり）
+  "test_name": "string",                      // go test -run に渡す正規表現（例 ^TestInventoryService_Reserve$/^returns_ErrOutOfStock_when_stock_is_insufficient$）
+  "test_case_count": 0,                       // Red 完了時点の test_file_path 内のケース数（func Test + t.Run）。Evac(review) が増加を検出する基準値
+  "test_details": {"total": 0, "passed": 0, "failed": 0, "error_type": "compile_error_undefined | assertion_failed | status_mismatch | ...", "error_message": "..."},   // コンパイルエラーの Red は total/passed/failed を 0 にする（go test は件数を出力しない）
   "implementation_files": ["..."],            // green 以降
   "refactor_details": { },                    // refactor 以降（空オブジェクト不可）
   "retry_count": 0,
@@ -82,6 +84,7 @@ todo_task_id, completed_cycles, created_at, updated_at`
 }
 ```
 
-- `test_name` は `go test {test_package_dir} -run '{test_name}' -count=1 -v` で単一ケースを流すために使う。**`TestFunc/サブテスト名` の形で、サブテスト名の空白は `_` に置換したもの**を保存する（`go test` が内部でそう変換するため）。
+- `test_name` は `go test {test_package_dir} -run '{test_name}' -count=1 -v` で単一ケースを流すために使う。**`^TestFunc$/^サブテスト名$` の形（要素ごとに `^…$` で完全一致）で、サブテスト名の空白は `_` に置換し、正規表現メタ文字は `\` でエスケープしたもの**を保存する。
+- `test_package_dir` は**必ず `./` で始める**（`internal/handler` と書くと標準ライブラリ扱いで `is not in std` になる）。
 - **commit 完了時に `current-cycle.json` を削除**し、`completed_cycles` に移す。削除後に不在を Read で確認。
 - 次サイクルの Red 入口は「`current-cycle.json` 不在」を前提条件に検証する。

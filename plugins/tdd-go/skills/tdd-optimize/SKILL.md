@@ -30,7 +30,8 @@ TDD 完了後の shipment-api 向けテスト最適化。**テストの独立性
 ## モード判定
 - `$0` が `tdd-` → ワークフローモード（`completed_cycles` から `test_files` 収集。`$1` でファイル限定）。
 - `$0` がファイルパス（`_test.go` で終わる）→ スタンドアロン（`test_files=[$0]`、`workflow_id="standalone-{date}"`）。
-- 各テストファイルから**パッケージディレクトリ**を求めておく（`go test` はディレクトリ単位）。
+- 各テストファイルから**パッケージディレクトリ**を求めておく（`go test` はディレクトリ単位。**必ず `./` 始まり**。`internal/handler` は標準ライブラリ扱いで `is not in std` になる）。
+- ワークフローモードの入口ゲート: `current-cycle.json` が不在（サイクル進行中でない）かつ `coverage_review` が記録済みであること。違反なら中断。
 
 ## SP1: Assessment（必要性判断）
 各テストファイルを Read し計測（Grep）:
@@ -55,7 +56,7 @@ TDD 完了後の shipment-api 向けテスト最適化。**テストの独立性
 1. **ベースライン**: `go test {pkgs} -count=1`（全 pass 必須。失敗なら中断）。実行時間（`-v` の `--- PASS ... (0.12s)` / `ok ... 1.234s`）・ケース数を記録。
 2. 各ステップを Edit で適用し、`gofmt -w` を通す。
 3. 再実行（全 pass）＋ **独立性検証**:
-   - **単一ケース実行**: `go test {pkg} -run '{TestX}/{sub_case}' -count=1` で代表ケースが単独で pass すること。
+   - **単一ケース実行**: `go test {pkg} -run '^{TestX}$/^{sub_case}$' -count=1 -v` で代表ケースが**それだけ**走って pass すること（`=== RUN` が 1 サブテスト分だけ出る。前方一致だと他のケースも走る。`test_name` は `completed_cycles` から取る）。
    - **ランダム順序**: `go test {pkg} -count=1 -shuffle=on`（複数回。`-shuffle` の seed が出力されるので失敗時は `-shuffle={seed}` で再現）。**`-shuffle` はトップレベルの `TestXxx` の順序しか変えない**ので、テーブル駆動のサブテスト間の順序依存は上の単一ケース実行で検証する。
    - **レース検出**: `go test {pkg} -count=1 -race`（`t.Parallel()` を付けたケースは特に必須）。
    - **フレーク検出**: `go test {pkg} -count=3`。
@@ -70,4 +71,4 @@ Before/After（ケース数・ヘルパ数・実行時間）を比較。
 - **独立性は絶対**（単一ケース実行・`-shuffle=on`・`-race`・`-count=3` で pass。共有可変状態を作らない。破壊したらロールバック）。
 - **統合は順序非依存を厳守**（正常系/異常系混在は統合しない）。
 - **承認必須**（SP3 で承認を得てから SP4）。
-- `-count=1` を忘れるとテストキャッシュが当たり「最適化後に実行されていないのに ok」になる。
+- `-count=1` を忘れると、外部状態（DB）だけが変わったケースでテストキャッシュの成功結果が返り「実行されていないのに ok」になる。

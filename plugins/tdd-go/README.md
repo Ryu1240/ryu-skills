@@ -15,7 +15,7 @@
 | HTTP テスト | `net/http/httptest`（`NewRecorder` / `NewServer`） |
 | モック | 利用側で定義した小さなインターフェイス + 手書きフェイク（gomock / mockery / moq のリポではそれに従う） |
 | 外部 API | `httptest.NewServer` で応答を差し替え。実通信はしない |
-| DB | `database/sql` + sqlc / sqlx / pgx（GORM / ent 可）。テストはトランザクション + `t.Cleanup(tx.Rollback)` |
+| DB | `database/sql` + sqlc / sqlx / pgx（GORM / ent 可）。テストはトランザクション + `t.Cleanup(func() { _ = tx.Rollback() })` |
 | 時刻 / 乱数 | `Clock` インターフェイス / `func() time.Time` で注入 |
 | lint / hook | `gofmt` / `goimports` + `go vet` + `golangci-lint`、lefthook / pre-commit |
 | CI | GitHub Actions / CircleCI（`go test -race` / `golangci-lint`） |
@@ -34,7 +34,7 @@ internal/repository/  … データアクセス。database/sql・sqlc をここ�
 internal/domain/      … 型・sentinel error。何にも依存しない
 ```
 
-- **Red** はレイヤー別のテスト作法を指示（service=手書きフェイク注入 + `errors.Is`、handler=`httptest.NewRecorder`、repository=トランザクションロールバック、外部 API=`httptest.NewServer`）。単一ケース実行は `go test {pkg} -run 'TestX/sub_case' -count=1`（サブテスト名の空白は `_`）。
+- **Red** はレイヤー別のテスト作法を指示（service=手書きフェイク注入 + `errors.Is`、handler=`httptest.NewRecorder`、repository=トランザクションロールバック、外部 API=`httptest.NewServer`）。単一ケース実行は `go test {pkg} -run '^TestX$/^sub_case$' -count=1`（要素ごとに完全一致。サブテスト名の空白は `_`）。
 - **Refactor** は Go 固有の観点で改善（**レイヤー逆流**の解消 / **ループ内クエリの N+1** / **`%w` ラップと sentinel の集約** / **goroutine リーク・`defer cancel()` 漏れ・`ctx` の断絶** / インターフェイスの肥大と producer 側定義 / `any` と型アサーションの除去）
 - **Coverage Review** は 400/401/403/404/409、sentinel error、外部 API 失敗、DB 制約違反、context キャンセル、`-race` まで含むマトリクスで抜けを埋めます
 - **Optimize** はテーブル駆動化・`t.Helper()` ヘルパ抽出・`cmp.Diff` 集約を行い、`-shuffle=on` / `-race` / `-count=3` / `-p 1`・`-parallel 1` で独立性を検証します

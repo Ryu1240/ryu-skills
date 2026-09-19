@@ -13,6 +13,8 @@ allowed-tools:
   - Bash(goimports:*)
   - Bash(golangci-lint:*)
   - Bash(make:*)
+  - Bash(rm .claude/tdd-workflow/:*)
+  - Bash(date:*)
 examples:
   - input: /tdd-commit tdd-20260613-101500
     description: Execute Commit phase for the current cycle
@@ -67,7 +69,7 @@ lefthook / pre-commit が `gofmt` / `go vet` / `golangci-lint` を走らせる�
 4. 解決不能なら state-machine 停止条件#7 として状態保存し報告。
 
 ## 6. アーカイブ（workflow JSON 更新・スキーマ準拠）
-`workflow-{id}.json` を Edit（workflow-schema 準拠）: `completed_cycles` に今サイクル追記（`cycle_number`, `title`, `commit`(SHA), `test_file_path`, `implementation_files`）、`current_cycle` +1、`updated_at` 更新、`status` は `in_progress`（全完了時は tdd 側 Phase6 で `done`）。
+`workflow-{id}.json` を Edit（workflow-schema 準拠）: `completed_cycles` に今サイクル追記（`cycle_number`, `title`, `commit`(SHA), `test_file_path`, `test_package_dir`, `test_name`, `implementation_files`。Optimize が単一ケース実行に使う）、`current_cycle` +1、`updated_at` 更新、`status` は `in_progress`（全完了時は tdd 側 Phase6 で `done`）。
 
 ## 7. current-cycle.json 削除 + 不在確認（必須）
 ```bash
