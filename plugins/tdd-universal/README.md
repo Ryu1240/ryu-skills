@@ -2,7 +2,7 @@
 
 **任意の言語・テストフレームワーク**向けの汎用 TDD ワークフロー自動化スキル群です。Plan → Red → Green → Refactor → Commit のサイクルをフェーズ単位で進め、Coverage Review と Test Optimize まで回します。
 
-専用プラグイン（`tdd-rails` / `tdd-python` / `tdd-frontend` / `tdd-node` / `tdd-go` / `tdd-monorepo`）が用意されていないスタック — Rust, Java/Kotlin, PHP, C#, Elixir, Swift, Dart, Scala, Ruby(非Rails), React, その他 — はこれを使います。
+専用プラグイン（`tdd-rails` / `tdd-python` / `tdd-frontend` / `tdd-node` / `tdd-go` / `tdd-rust` / `tdd-monorepo`）が用意されていないスタック — Java/Kotlin, PHP, C#, Elixir, Swift, Dart, Scala, Ruby(非Rails), React, その他 — はこれを使います。
 
 ## 設計: 言語知識をスキル本体から追い出す
 
@@ -34,6 +34,7 @@
 | Vue + Vitest | `tdd-frontend`（role 取得 / MSW まで踏み込む） |
 | TS/Node バックエンド | `tdd-node`（レイヤー衛生 / DI / Zod まで踏み込む） |
 | Go バックエンド | `tdd-go`（テーブル駆動 / httptest / `-race` まで踏み込む） |
+| Rust | `tdd-rust`（トレイト DI / `#[sqlx::test]` / clippy まで踏み込む） |
 | Rails + Vue モノレポ | `tdd-monorepo` |
 | **上記以外のすべて** | **`tdd-universal`** |
 

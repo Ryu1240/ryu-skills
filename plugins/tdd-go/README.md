@@ -46,6 +46,7 @@ internal/domain/      … 型・sentinel error。何にも依存しない
 | 状況 | 使うもの |
 |---|---|
 | **Go バックエンド（API サーバー・CLI・ワーカー）** | **`tdd-go`** |
+| Rust（cargo test） | `tdd-rust` |
 | TS/Node バックエンド | `tdd-node` |
 | Vue + Vitest のフロントエンド | `tdd-frontend` |
 | Rails + RSpec | `tdd-rails` |
