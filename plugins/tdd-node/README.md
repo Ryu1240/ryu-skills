@@ -46,6 +46,7 @@ src/schemas/      … Zod スキーマと型
 | Vue + Vitest のフロントエンド | `tdd-frontend` |
 | Rails + RSpec | `tdd-rails` |
 | Python + pytest | `tdd-python` |
+| Go バックエンド | `tdd-go` |
 | Rails + Vue モノレポ | `tdd-monorepo` |
 | 上記以外の言語 | `tdd-universal` |
 

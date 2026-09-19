@@ -1,0 +1,8 @@
+{
+  "name": "tdd-go",
+  "version": "0.1.0",
+  "description": "Go バックエンド（標準 testing）向け TDD ワークフロー自動化スキル。Plan→Red→Green→Refactor→Commit→Coverage Review→Optimize を状態永続化しながら回す。レイヤー構成・インターフェイス注入・httptest・エラーラップ（%w）・context 伝搬・トランザクションロールバックを前提にした具体指示つき。",
+  "author": {
+    "name": "Ryu1240"
+  }
+}

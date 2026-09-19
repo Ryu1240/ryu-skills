@@ -2,7 +2,7 @@
 
 Claude Code 向け **TDD ワークフロー自動化スキル**の plugin マーケットプレイスです。Plan → Red → Green → Refactor → Commit のサイクルを、状態を永続化しながらフェーズ単位で進め、最後に Coverage Review と Test Optimize まで回すオーケストレーションを提供します。
 
-スタックごとに 6 つの plugin に分かれています（`tdd-monorepo` は複数スタック混在向け、`tdd-universal` はそれ以外のあらゆる言語向け）。
+スタックごとに 7 つの plugin に分かれています（`tdd-monorepo` は複数スタック混在向け、`tdd-universal` はそれ以外のあらゆる言語向け）。
 
 | Plugin | 対象スタック | スラッシュコマンド | ディレクトリ |
 |---|---|---|---|
@@ -10,10 +10,11 @@ Claude Code 向け **TDD ワークフロー自動化スキル**の plugin マー
 | **`tdd-python`** | Python + pytest + pydantic（CLI ツール） | `/tdd …` | [`plugins/tdd-python/`](plugins/tdd-python/) |
 | **`tdd-frontend`** | Vue 3 + Vite + Vitest（SPA フロントエンド） | `/tdd …` | [`plugins/tdd-frontend/`](plugins/tdd-frontend/) |
 | **`tdd-node`** | TypeScript + Node.js バックエンド（Vitest） | `/tdd …` | [`plugins/tdd-node/`](plugins/tdd-node/) |
+| **`tdd-go`** | Go バックエンド（標準 `testing` + テーブル駆動 + `httptest`） | `/tdd …` | [`plugins/tdd-go/`](plugins/tdd-go/) |
 | **`tdd-monorepo`** | Rails backend + Vue frontend のモノレポ（エコシステム自動判定） | `/tdd …` | [`plugins/tdd-monorepo/`](plugins/tdd-monorepo/) |
-| **`tdd-universal`** | **上記以外のあらゆる言語**（Go / Rust / Java / PHP / C# / Elixir …）。対話型 bootstrap で設定を構築 | `/tdd …` | [`plugins/tdd-universal/`](plugins/tdd-universal/) |
+| **`tdd-universal`** | **上記以外のあらゆる言語**（Rust / Java / PHP / C# / Elixir …）。対話型 bootstrap で設定を構築 | `/tdd …` | [`plugins/tdd-universal/`](plugins/tdd-universal/) |
 
-> 専用 plugin（上4つ）の skill はプロジェクト固有の前提を `skills/_shared-tdd/project-settings.md` に集約しています。サンプルとして架空リポジトリ **`sales-hub`**（Rails）/ **`taskcli`**（Python）/ **`storefront`**（フロントエンド）/ **`order-api`**（Node バックエンド）/ **`retail-hub`**（モノレポ）を題材に記述してあるので、自分のプロジェクトに合わせて `project-settings.md` を書き換えて使ってください（`tdd-bootstrap` が自動生成します）。
+> 専用 plugin（上5つ）の skill はプロジェクト固有の前提を `skills/_shared-tdd/project-settings.md` に集約しています。サンプルとして架空リポジトリ **`sales-hub`**（Rails）/ **`taskcli`**（Python）/ **`storefront`**（フロントエンド）/ **`order-api`**（Node バックエンド）/ **`shipment-api`**（Go）/ **`retail-hub`**（モノレポ）を題材に記述してあるので、自分のプロジェクトに合わせて `project-settings.md` を書き換えて使ってください（`tdd-bootstrap` が自動生成します）。
 >
 > **`tdd-universal` は言語固有の知識をスキル本体に持たず**、すべて `project-settings.md` から読みます。未対応言語では bootstrap が走査＋**対話ヒアリング**で設定を構築するため、マニフェストが検出できない環境でも成立します。
 
@@ -30,13 +31,14 @@ Claude Code の plugin マーケットプレイスとして登録し、使いた
 /plugin install tdd-python@general-skills     # Python プロジェクト用
 /plugin install tdd-frontend@general-skills   # Vue/Vite フロントエンド用
 /plugin install tdd-node@general-skills       # TS/Node バックエンド用
+/plugin install tdd-go@general-skills         # Go バックエンド用
 /plugin install tdd-monorepo@general-skills   # Rails+Vue モノレポ用
 /plugin install tdd-universal@general-skills  # それ以外のあらゆる言語用
 ```
 
 各 plugin は同じ skill 名（`/tdd`, `/tdd-red`, `/tdd-green`, …）を提供します。**プロジェクトごとに 1 つだけを `.claude/settings.json` で有効化するのが推奨運用**です。選び方:
 
-- 単体スタック（Rails / Python / Vue / TS・Node バックエンド）→ 対応する専用 plugin
+- 単体スタック（Rails / Python / Vue / TS・Node バックエンド / Go）→ 対応する専用 plugin
 - **Rails+Vue のモノレポ** → `tdd-monorepo`（1 スキルセットで backend/frontend をエコシステム自動判定するため、単体プラグインの同時有効化＝skill 名衝突を避けられます）
 - **上記以外の言語** → `tdd-universal`（bootstrap が対話でスタックを聞き取って設定を構築）
 
@@ -121,6 +123,22 @@ TypeScript + Node.js バックエンド向け（Vitest）。**レイヤードア
 - **[tdd-optimize](plugins/tdd-node/skills/tdd-optimize/SKILL.md)** — `it.each` 化・セットアップ巻き上げ。`--sequence.shuffle` と並列実行で独立性を検証。
 - **[tdd-workflow-update](plugins/tdd-node/skills/tdd-workflow-update/SKILL.md)** — 進行中ワークフロー JSON を自然言語で動的更新。
 
+### `tdd-go`（`/tdd`）
+
+Go バックエンド向け（標準 `testing`）。**`cmd/` + `internal/` のレイヤー構成**（handler → service → repository → domain）を前提に、利用側で定義する小さなインターフェイスと手書きフェイクによる DI・テーブル駆動 + `t.Run` サブテスト・`net/http/httptest`・トランザクションロールバック（`t.Cleanup`）まで踏み込んで指示します。Refactor では**レイヤー逆流 / ループ内クエリの N+1 / `%w` ラップ漏れ・エラー握り潰し / goroutine リーク・`ctx` 伝搬漏れ / インターフェイス肥大**を検出し、Optimize は `-shuffle=on` と `-race` で独立性を検証します。マルチモジュール（`go.work`）と CLI（cobra）にも bootstrap が対応。詳細は [`plugins/tdd-go/README.md`](plugins/tdd-go/README.md) を参照。
+
+- **[tdd](plugins/tdd-go/skills/tdd/SKILL.md)** — オーケストレーター。Phase 2 でレイヤーを判定し、Plan→サイクル→Coverage Review→Optimize を統括。
+- **[tdd-bootstrap](plugins/tdd-go/skills/tdd-bootstrap/SKILL.md)** — 初回セットアップ。`go.mod`/`go.work`・ルーター・アサーション/モックライブラリ・DB と独立性の担保方法・`Makefile` ターゲットを走査し、不明点は対話で確認（承認制）。あわせて `.claude/tdd-workflow/` を gitignore するかを確認します。
+- **[tdd-project-settings-update](plugins/tdd-go/skills/tdd-project-settings-update/SKILL.md)** — 生成済み設定を自然言語で調整（コマンドは `Makefile` / 実際の `go test` で裏取り）。
+- **[tdd-red](plugins/tdd-go/skills/tdd-red/SKILL.md)** — Red。レイヤー別の作法（domain/service/handler/repository）でテーブル駆動の失敗するテストを 1 本だけ書く。
+- **[tdd-green](plugins/tdd-go/skills/tdd-green/SKILL.md)** — Green。最小実装（インターフェイス注入・`%w` ラップ・`ctx` 伝搬・レイヤー遵守）。
+- **[tdd-refactor](plugins/tdd-go/skills/tdd-refactor/SKILL.md)** — Refactor。レイヤー衛生 / N+1 / エラー処理 / 並行性と context / インターフェイスと型 / `gofmt`・`go vet`・`golangci-lint`。
+- **[tdd-commit](plugins/tdd-go/skills/tdd-commit/SKILL.md)** — Commit。pre-commit hook 準拠でコミット（マイグレーション・`go generate` 生成物・`go.mod`/`go.sum` も含める）。
+- **[tdd-evacuator](plugins/tdd-go/skills/tdd-evacuator/SKILL.md)** — リファクタ候補・テスト妥当性・サイクル境界の追加テスト提案（読み取り専用）。
+- **[tdd-coverage-review](plugins/tdd-go/skills/tdd-coverage-review/SKILL.md)** — 400/401/403/404/409・外部 API 失敗・DB 制約・sentinel error・context キャンセルまで含むマトリクスで補完。
+- **[tdd-optimize](plugins/tdd-go/skills/tdd-optimize/SKILL.md)** — テーブル駆動化・`t.Helper()` ヘルパ抽出・`t.Parallel()`。`-shuffle=on` / `-race` / `-count=3` で独立性を検証。
+- **[tdd-workflow-update](plugins/tdd-go/skills/tdd-workflow-update/SKILL.md)** — 進行中ワークフロー JSON を自然言語で動的更新。
+
 ### `tdd-monorepo`（`/tdd`）
 
 Rails/RSpec backend + Vue/Vitest frontend の**モノレポ**向け。1 スキルセットで `ecosystem`（backend/frontend）を自動判定して各フェーズを分岐します。単体プラグインを複数同時有効化する際の skill 名衝突を避けるため、モノレポでは**これ 1 つだけ**を有効化します。詳細は [`plugins/tdd-monorepo/README.md`](plugins/tdd-monorepo/README.md) を参照。
@@ -139,7 +157,7 @@ Rails/RSpec backend + Vue/Vitest frontend の**モノレポ**向け。1 スキ�
 
 ### `tdd-universal`（`/tdd`）
 
-**専用 plugin が無いあらゆる言語**向け（Go / Rust / Java / Kotlin / PHP / C# / Elixir / Swift / Dart / Scala / Ruby(非Rails) / React …）。スキル本体は言語知識を持たず、テストコマンド・配置・独立性の担保方法・言語固有イディオムをすべて `project-settings.md` から読みます。加えて不変条件に「**既存テストの慣習を踏襲する**」を据えることで、言語非依存のまま各リポの流儀に適応します。詳細は [`plugins/tdd-universal/README.md`](plugins/tdd-universal/README.md) を参照。
+**専用 plugin が無いあらゆる言語**向け（Rust / Java / Kotlin / PHP / C# / Elixir / Swift / Dart / Scala / Ruby(非Rails) / React …）。スキル本体は言語知識を持たず、テストコマンド・配置・独立性の担保方法・言語固有イディオムをすべて `project-settings.md` から読みます。加えて不変条件に「**既存テストの慣習を踏襲する**」を据えることで、言語非依存のまま各リポの流儀に適応します。詳細は [`plugins/tdd-universal/README.md`](plugins/tdd-universal/README.md) を参照。
 
 - **[tdd](plugins/tdd-universal/skills/tdd/SKILL.md)** — オーケストレーター。Plan→サイクル→Coverage Review→Optimize を統括。Phase 0 で未設定（`{{...}}` の残存）を検出し bootstrap を呼ぶ。
 - **[tdd-bootstrap](plugins/tdd-universal/skills/tdd-bootstrap/SKILL.md)** — **対話型**初回セットアップ。言語検出表とランナー別コマンド表で走査し、検出できない項目はヒアリングして設定を構築（承認制）。マニフェスト検出ゼロでも対話だけで成立。あわせて `.claude/tdd-workflow/`（実行時の状態ファイル）を gitignore するかを確認します。
