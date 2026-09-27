@@ -22,12 +22,13 @@
   "status": "planning_done | in_progress | done",
   "task_title": "string",
   "task_content": "string",
+  "task_content_history": [],                // 任意。tdd-workflow-update が task_content を上書きした際の旧値
   "task_source": "notion | free-text | conversation-context",
   "notion_url": "string | null",
   "ecosystem": "backend | frontend",         // Rails(api/) か Vue(web/) か（Phase2 で判定）
   "target_files": {
     "implementation": ["api/app/... | web/src/..."],
-    "test": "api/spec/.../*_spec.rb | web/src/.../*.spec.ts",
+    "test": ["api/spec/models/lead_spec.rb", "api/spec/requests/leads_spec.rb"],   // サイクルごとに異なりうるので配列（ecosystem に応じて *_spec.rb か *.spec.ts）
     "factories": ["api/spec/factories/*.rb"],   // backend のみ
     "mocks": ["web/src/testUtils/mocks/handlers/..."]  // frontend のみ
   },
@@ -47,9 +48,9 @@
   "current_cycle": 1,
   "todo_task_id": "string",
   "completed_cycles": [
-    {"cycle_number": 1, "commit": "sha", "test_file_path": "...", "implementation_files": ["..."]}
+    {"cycle_number": 1, "title": "string", "ecosystem": "backend | frontend", "commit": "sha", "test_file_path": "...", "implementation_files": ["..."]}
   ],
-  "coverage_review": null,
+  "coverage_review": null,                    // 完了後は {"before": 0, "after": 0, "added": ["..."], "commit": "sha", "completed_at": "ISO8601"}
   "created_at": "ISO8601",
   "updated_at": "ISO8601"
 }
@@ -72,6 +73,7 @@ todo_task_id, completed_cycles, created_at, updated_at`
   "ecosystem": "backend | frontend",          // ワークフローの ecosystem を引き継ぐ
   "phase": "red | green | refactor",          // "commit" は付けない（commit 完了でこのファイル削除）
   "test_file_path": "string",
+  "test_case_count": 0,                       // Red 完了時点の test_file_path 内のケース数（backend=RSpec の it / specify / example、frontend=Vitest の it( / test( / it.each / test.each の定義数）。Evac(review) が増加を検出する基準値
   "test_details": {"total": 0, "passed": 0, "failed": 0, "error_type": "...", "error_message": "..."},
   "implementation_files": ["..."],            // green 以降
   "refactor_details": { },                    // refactor 以降（空オブジェクト不可）

@@ -29,6 +29,7 @@ TDD 完了後の pytest テスト最適化。**テストの独立性を保った
 ## モード判定
 - `$0` が `tdd-` で始まる → ワークフローモード（`workflow-{id}.json` の `completed_cycles` から `test_files` を収集。`$1` 指定でファイル限定）。
 - `$0` がファイルパス → スタンドアロンモード（`test_files=[$0]`、`workflow_id="standalone-{date +%Y%m%d-%H%M%S}"`）。
+- ワークフローモードの入口ゲート: `current-cycle.json` が不在（サイクル進行中でない）かつ `coverage_review` が記録済みであること。違反なら中断。
 
 ## SP1: Assessment（必要性判断）
 各テストファイルを Read し計測（Grep）: `^def test_` 数、`@pytest.mark.parametrize`/`{GROUP}_BASIC_CASES` 数、`load_json\(` 数。

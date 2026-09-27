@@ -176,7 +176,7 @@ plugin 同梱テンプレ（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/project-se
 - `{{EXTRA_INVARIANTS}}` が空なら、不変条件の 8 番目の項目行を削除する。
 
 ### 5-2. `commit-convention.md` / `workflow-schema.md` / `state-machine.md`
-plugin 同梱の **テンプレ**（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/{filename}`）を Read してそのまま Write する（プロジェクト固有差分は project-settings.md に集約）。`${CLAUDE_PLUGIN_ROOT}` が解決できない環境では `plugins/tdd-universal/skills/_shared-tdd/{filename}` を相対 Read する。
+plugin 同梱の **テンプレ**（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/{filename}`）を Read して Write する（プロジェクト固有差分は project-settings.md に集約）。ただし **3 ファイルの見出しの `— 汎用`** は実プロジェクト名に置換する（hook や CI の有無は `commit-convention.md` が project-settings の `{{PRECOMMIT}}` / `{{CI}}` を参照する形になっているので、そのままでよい）。`${CLAUDE_PLUGIN_ROOT}` が解決できない環境では `plugins/tdd-universal/skills/_shared-tdd/{filename}` を相対 Read する。
 
 ### 5-3. 自己検証（必須）
 生成した `project-settings.md` を Read し直し、**`{{` が残っていないこと**と、単一ケース/単一ファイル実行コマンドが実在することを確認する。残っていれば埋めてから完了とする。
@@ -187,11 +187,12 @@ plugin 同梱の **テンプレ**（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/{f
 
 ### 6-1. 現状確認
 ```bash
-git check-ignore -q .claude/tdd-workflow/ && echo ignored || echo not-ignored
+git check-ignore -q .claude/tdd-workflow/
 ```
-- **既に無視されている** → 何もせず次へ（サマリで「設定済み」と報告）。
-- **無視されていない** → 6-2 へ。
-- git 管理下でない（コマンドが失敗する）→ このステップをスキップ。
+終了コードで判定する（`echo` を繋がない。128 を「未無視」と誤認しないため）:
+- **0（既に無視されている）** → 何もせず次へ（サマリで「設定済み」と報告）。
+- **1（無視されていない）** → 6-2 へ。
+- **128（git 管理下でない）** → このステップをスキップ。
 
 ### 6-2. ユーザーに確認（AskUserQuestion・必須）
 「TDD ワークフローの状態ファイルを git 管理から除外しますか？」として次を提示する:

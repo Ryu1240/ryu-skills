@@ -12,6 +12,7 @@ allowed-tools:
   - Bash(git:*)
   - Grep
   - Glob
+  - Bash(date:*)
 examples:
   - input: /tdd-green tdd-20260613-101500
     description: Execute Green phase for the current cycle

@@ -30,9 +30,9 @@ examples:
 
 | 編集可能 | 保護（絶対に書き換えない） |
 |---|---|
-| `cycle_plan[]` の未消化エントリ（`cycle > current_cycle`、または `== current_cycle` かつ current_phase≠commit） | `completed_cycles[]` 全件 |
-| `user_instructions`（追記マージ） | `current_cycle` / `current_phase` |
-| `run_mode`（`phase-stop`↔`auto` 切替指示時） | `created_at` / `total_cycles`（cycle 追加時のみ +1 可） |
+| `cycle_plan[]` の未消化エントリ（`cycle > current_cycle`、または `== current_cycle` かつ `current-cycle.json` が存在する＝進行中） | `completed_cycles[]` 全件 |
+| `user_instructions`（追記マージ） | `current_cycle` |
+| `run_mode`（`phase-stop`↔`auto` 切替指示時） | `created_at` / `total_cycles`（cycle 追加/削除時のみ ±1 可） |
 | `task_content`（明示指示時のみ。旧値を `task_content_history[]` に append） | 完了済み `cycle_plan` エントリ / `commit` / `completed_cycles` の `*` |
 | `technical_constraints[]`（追記） | **別ファイル** `current-cycle.json`（常に read-only） |
 | `updated_at`（必ず更新） | `schema_version` / `workflow_id` |
@@ -41,12 +41,12 @@ examples:
 `$0` が `tdd-\d{8}-\d{6}` 形式。`$1` 以降（指示）が非空。`.claude/tdd-workflow/workflow-{$0}.json` 存在（無ければ Glob で候補提示して中断）。
 
 ## Step 2: 読込（read-only）
-`workflow-{$0}.json` と（あれば）`current-cycle.json` を Read。`completed_cycles`/`current_cycle`/`current_phase`/`cycle_plan`/`user_instructions`/`run_mode`/`task_content` を把握。未消化サイクルを判定。
+`workflow-{$0}.json` と（あれば）`current-cycle.json` を Read。`completed_cycles`/`current_cycle`/`cycle_plan`/`user_instructions`/`run_mode`/`task_content` を把握。未消化サイクルを判定。
 
 ## Step 3: 提案 diff の構築
 指示を解釈して操作を提案（cycle_plan の未消化エントリ 追加/削除/修正、user_instructions 追記、run_mode 切替、task_content 上書き）。
-- 削除: 該当エントリ除外（後続の `cycle` 番号は再採番しない＝衝突防止）。
-- 追加: 末尾に追加（`cycle` = 既存最大+1）、`total_cycles` +1。
+- 削除: 該当エントリを除外し、**後続の未消化エントリの `cycle` を詰めて再採番**、`total_cycles` −1（`current_cycle` は `cycle_plan` の添字として使われるため欠番を作らない。TODO も同期）。
+- 追加: 末尾に追加（`cycle` = 既存最大+1）、`total_cycles` +1（`cycle_plan` 長 == `total_cycles` を維持）。
 - 修正: 該当の `title`/`kind`/`target` を書換。
 diff を提示（編集内容 + 保護対象を明示）。
 

@@ -57,7 +57,7 @@ project-settings の `{{PRECOMMIT}}` に hook がある場合、lint エラー�
 4. 解決不能なら state-machine 停止条件#7 として状態保存し報告。
 
 ## 5. アーカイブ（workflow JSON 更新・スキーマ準拠）
-`workflow-{id}.json` を Edit（workflow-schema 準拠）: `completed_cycles` に今サイクル追記（`cycle_number`, `title`, `commit`(SHA), `test_file_path`, `implementation_files`）、`current_cycle` +1、`updated_at` 更新、`status` は `in_progress`（全完了時は tdd 側 Phase6 で `done`）。
+`workflow-{id}.json` を Edit（workflow-schema 準拠）: `completed_cycles` に今サイクル追記（`cycle_number`, `title`, `commit`(SHA), `test_file_path`, `test_case_id`, `implementation_files`。`test_case_id` は Optimize が単一ケース実行に使う）、`current_cycle` +1、`updated_at` 更新、`status` は `in_progress`（全完了時は tdd 側 Phase6 で `done`）。
 
 ## 6. current-cycle.json 削除 + 不在確認（必須）
 ```bash

@@ -158,7 +158,7 @@ examples:
 
 ### 4-2. `commit-convention.md` / `workflow-schema.md` / `state-machine.md`
 
-plugin 同梱の **テンプレ**（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/{filename}`）を Read してそのまま Write する（プロジェクト固有変更なし）。`${CLAUDE_PLUGIN_ROOT}` が解決できない環境では、`plugins/tdd-frontend/skills/_shared-tdd/{filename}` を相対 Read する。
+plugin 同梱の **テンプレ**（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/{filename}`）を Read して Write する（プロジェクト固有差分は project-settings.md に集約）。ただし **3 ファイルの見出しのリポ名**（`— storefront`）は実プロジェクト名に置換し、`commit-convention.md` の「pre-commit hook あり（husky + lint-staged）」の段落は検出結果に合わせる（hook 無しなら「hook が無いため、コミット前に lint を手動実行する」に書き換える）。`${CLAUDE_PLUGIN_ROOT}` が解決できない環境では、`plugins/tdd-frontend/skills/_shared-tdd/{filename}` を相対 Read する。
 
 ## Step 5: ワークフロー状態の git 追跡設定（確認）
 
@@ -166,11 +166,12 @@ plugin 同梱の **テンプレ**（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/{f
 
 ### 5-1. 現状確認
 ```bash
-git check-ignore -q .claude/tdd-workflow/ && echo ignored || echo not-ignored
+git check-ignore -q .claude/tdd-workflow/
 ```
-- **既に無視されている** → 何もせず次へ（サマリで「設定済み」と報告）。
-- **無視されていない** → 5-2 へ。
-- git 管理下でない（コマンドが失敗する）→ このステップをスキップ。
+終了コードで判定する（`echo` を繋がない。128 を「未無視」と誤認しないため）:
+- **0（既に無視されている）** → 何もせず次へ（サマリで「設定済み」と報告）。
+- **1（無視されていない）** → 5-2 へ。
+- **128（git 管理下でない）** → このステップをスキップ。
 
 ### 5-2. ユーザーに確認（AskUserQuestion・必須）
 「TDD ワークフローの状態ファイルを git 管理から除外しますか？」として次を提示する:

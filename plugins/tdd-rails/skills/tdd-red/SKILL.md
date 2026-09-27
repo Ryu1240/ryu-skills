@@ -12,6 +12,8 @@ allowed-tools:
   - Bash(git:*)
   - Grep
   - Glob
+  - TaskGet
+  - Bash(date:*)
 examples:
   - input: /tdd-red tdd-20260613-101500
     description: Execute Red phase for the current cycle
@@ -78,7 +80,7 @@ WebMock で外部（外部 CRM API/メール送信 API 等）をモック、tena
 予期しない失敗（構文エラー・factory 未定義・tenant 設定漏れ・collection error）はテスト側を修正して再実行。
 
 ## 5. 状態更新
-`current-cycle.json` を workflow-schema 準拠で Write（`phase:"red"`, `test_file_path`, `test_details`(error_type/message), `created_at`/`updated_at`）。
+`current-cycle.json` を workflow-schema 準拠で Write（`phase:"red"`, `test_file_path`, **`test_case_count`**（`test_file_path` 内の `it ` / `it(` / `specify` / `example` / `scenario` の定義数。`it_behaves_like` / `include_examples` は 1 と数える。Evac(review) の基準値）, `test_details`(error_type/message), `created_at`/`updated_at`）。
 **自己検証**: Read で `phase=="red"`・`updated_at` 更新を確認。
 
 ## 6. サマリ（簡潔）

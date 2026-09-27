@@ -37,7 +37,7 @@ Red→Green→Refactor→Commit の間で、storefront のコード品質とテ�
 
 ## Review mode の評価項目
 - plan で指摘した composable/分割/再レンダリング/命名が実装に反映されたかを Read/Grep で確認。
-- **新規テストが追加されていないこと**を確認（Refactor 原則）: `git diff HEAD {test_file} | grep "^+.*it(['\"]"`。新規 `it` があれば warning。
+- **新規テストが追加されていないこと**を確認（Refactor 原則）: `test_file_path` を Read してケース定義（`it(` / `test(` / `it.each` / `test.each`）の数を数え、`current-cycle.json` の **`test_case_count`**（Red 完了時点の値）と比較する。増えていれば warning。`git diff HEAD` との比較は**使わない**（Red で追加したテストも未コミットなので必ず差分に出て、常に誤検知になる）。
 - テストが pass している前提（`current-cycle.json` `phase=="refactor"`）。
 
 ## Boundary mode の提案項目（Vue / TS）

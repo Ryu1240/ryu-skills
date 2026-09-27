@@ -40,7 +40,7 @@ Red→Green→Refactor→Commit の間で、コード品質とテスト妥当性
 
 ## Review mode の評価項目
 - plan で指摘した項目が実装に反映されたかを Read/Grep で確認。
-- **新規テストが追加されていないこと**を確認（Refactor 原則）: `git diff HEAD -- {test_file}` の追加行に新規テストケースが含まれていないか確認（ケース記述スタイルは `patterns.test_case_style` を参照）。含まれていれば warning。
+- **新規テストが追加されていないこと**を確認（Refactor 原則）: `test_file_path` を Read し、`patterns.test_case_style` のケース記述構文でケース定義の数を数え、`current-cycle.json` の **`test_case_count`**（Red 完了時点の値）と比較する。増えていれば warning。`git diff HEAD` との比較は**使わない**（Red で追加したテストも未コミットなので必ず差分に出て、常に誤検知になる。Rust の inline テストのように実装とテストが同一ファイルの言語では Green の実装も差分に混ざる）。
 - **振る舞いが変わっていないこと**: `git diff` で条件分岐・戻り値・エラー種別の変化がないか確認。あれば warning。
 - テストが pass している前提（`current-cycle.json` `phase=="refactor"`）。
 

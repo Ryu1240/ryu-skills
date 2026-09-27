@@ -15,6 +15,8 @@ allowed-tools:
   - Edit
   - Bash(date:*)
   - Bash(git:*)
+  - Bash(mkdir .claude/tdd-workflow/:*)
+  - Bash(mv .claude/tdd-workflow/:*)
   - Grep
   - Glob
 examples:

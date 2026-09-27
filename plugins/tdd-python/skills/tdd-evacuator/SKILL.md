@@ -34,11 +34,7 @@ Red→Green→Refactor→Commit の間で、taskcli のコード品質と pytest
 
 ## Review mode の評価項目
 - plan で指摘した集約/抽出/命名が実装に反映されたかを Read で確認。
-- **新規テストが追加されていないこと**を確認（Refactor 原則）:
-  ```bash
-  git diff HEAD {test_file_path} | grep "^+def test_"
-  ```
-  新規 `def test_` があれば warning（次サイクルの Red で追加すべき）。
+- **新規テストが追加されていないこと**を確認（Refactor 原則）: `test_file_path` を Read して `def test_` の定義数を数え、`current-cycle.json` の **`test_case_count`**（Red 完了時点の値）と比較する。増えていれば warning（次サイクルの Red で追加すべき）。`@pytest.mark.parametrize` の要素数の増加も同様に確認。`git diff HEAD` との比較は**使わない**（Red で追加したテストも未コミットなので必ず差分に出て、常に誤検知になる）。
 - テストが引き続き pass している前提（current-cycle.json `phase=="refactor"`）。
 
 ## Boundary mode の提案項目（Python）

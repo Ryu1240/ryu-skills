@@ -22,12 +22,13 @@
   "status": "planning_done | in_progress | done",  // 必須
   "task_title": "string",                     // 必須
   "task_content": "string",                   // 必須。要件の本文
+  "task_content_history": [],                 // 任意。tdd-workflow-update が task_content を上書きした際の旧値
   "task_source": "notion | free-text | conversation-context",  // 必須
   "notion_url": "string | null",              // task_source=notion のときのみ
   "target_module": "schemas | commands | storage | cli",  // 必須
   "target_files": {                           // 必須
     "implementation": ["taskcli/taskcli/..."],
-    "test": "taskcli/tests/test_*.py",
+    "test": ["taskcli/tests/test_task_schemas.py", "taskcli/tests/test_add_command.py"],   // サイクルごとに異なりうるので配列
     "fixtures_dir": "taskcli/tests/fixtures/"
   },
   "patterns": {                               // 必須。既存コードから抽出した踏襲ルール
@@ -56,7 +57,7 @@
       "test_details": {"total_tests": 0, "passed_tests": 0, "failed_tests": 0}
     }
   ],
-  "coverage_review": null,                    // Coverage Review 実行後に {added, before, after, commit} を格納
+  "coverage_review": null,                    // Coverage Review 実行後に {"before": 0, "after": 0, "added": ["..."], "commit": "sha", "completed_at": "ISO8601"} を格納
   "created_at": "ISO8601",                    // 必須
   "updated_at": "ISO8601"                     // 必須。毎更新で書き換える
 }
@@ -80,6 +81,7 @@ todo_task_id, completed_cycles, created_at, updated_at`
   "phase": "red | green | refactor",          // "commit" は付けない（commit 完了時にこのファイルは削除）
   "test_file_path": "string",
   "target_module": "string",
+  "test_case_count": 0,                       // Red 完了時点の test_file_path 内の `def test_` 定義数（parametrize はケース数でなく定義数で数える）。Evac(review) が増加を検出する基準値
   "test_details": {"total_tests": 0, "passed_tests": 0, "failed_tests": 0, "error_type": "...", "error_message": "..."},
   "fixture_files_added": ["..."],
   "implementation_files": ["..."],            // green 以降

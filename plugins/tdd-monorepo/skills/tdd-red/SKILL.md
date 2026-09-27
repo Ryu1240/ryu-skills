@@ -14,6 +14,8 @@ allowed-tools:
   - Bash(npm:*)
   - Grep
   - Glob
+  - TaskGet
+  - Bash(date:*)
 examples:
   - input: /tdd-red tdd-20260613-101500
     description: Execute Red phase for the current cycle
@@ -92,7 +94,7 @@ describe('LeadList', () => {
 予期しない失敗（構文エラー・factory/import 誤り・tenant/Pinia/MSW 設定漏れ）はテスト側を修正して再実行。
 
 ## 5. 状態更新
-`current-cycle.json` を workflow-schema 準拠で Write（`phase:"red"`, `ecosystem`, `test_file_path`, `test_details`(error_type/message), `created_at`/`updated_at`）。
+`current-cycle.json` を workflow-schema 準拠で Write（`phase:"red"`, `ecosystem`, `test_file_path`, **`test_case_count`**（`test_file_path` 内のケース定義数。backend=RSpec の `it` / `specify` / `example`、frontend=Vitest の `it(` / `test(` / `it.each` / `test.each`。Evac(review) の基準値）, `test_details`(error_type/message), `created_at`/`updated_at`）。
 **自己検証**: Read で `phase=="red"`・`updated_at` 更新を確認。
 
 ## 6. サマリ（簡潔）
