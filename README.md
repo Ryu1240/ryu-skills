@@ -193,13 +193,14 @@ Rails/RSpec backend + Vue/Vitest frontend の**モノレポ**向け。1 スキ�
 
 ### `pr-tour`（`/pr-tour`）
 
-TDD 系とは独立した、**PR を理解するための**スキルです（skill 名が衝突しないので TDD 系プラグインと同時に有効化できます）。PR を「エントリーポイントから実行が流れる順」に歩き、各駅で既存実装 / このPRの差分 / リポジトリの約束事を分けて示します。行程表を出してから 1 ステップ = 1 ターンで進み、図解は mermaid のアーティファクト 1 枚をサイドバー付きで段階更新します。詳細は [`plugins/pr-tour/README.md`](plugins/pr-tour/README.md) を参照。
+TDD 系とは独立した、**PR を理解するための**スキルです（skill 名が衝突しないので TDD 系プラグインと同時に有効化できます）。差分の外にある起点（ルーティング・画面・cron・ジョブの起動元）を探し、起点から差分を貫く案内プランを Markdown と視覚ビューで保存・公開してから、1 ターン 1 ステップで「見る場所 / ここは何をしている場所か / 変更点 / なぜ / 対応するテスト / 次へのつながり」を解説します。詳細は [`plugins/pr-tour/README.md`](plugins/pr-tour/README.md) を参照。
 
 > [!WARNING]
 > 公式マーケットプレースの **`code-review` プラグイン（別物）** は PR に `gh pr comment` で公開コメントを投稿します。pr-tour はレビュー結果を手元に返す effort 付きの `code-review` スキルを併走させる前提で、判別できないときは起動しませんが、公式プラグインを入れている環境ではツアー前に無効化を推奨します。
 
-- **[pr-tour](plugins/pr-tour/skills/pr-tour/SKILL.md)** — ツアー本体。収集 → 行程表 → 1 駅ずつ解説 → 締め。effort 付き `code-review` があれば指摘を駅ごとに添え、無ければ併走を省いて続行。
-- **[references/tour-map.md](plugins/pr-tour/skills/pr-tour/references/tour-map.md)** — 図解アーティファクトの骨組み・CSS・更新手順（Artifact ツールが無い環境ではローカル HTML に書き出す）。
+- **[pr-tour](plugins/pr-tour/skills/pr-tour/SKILL.md)** — 本体。対象の解決 → 全体把握 → 起点の探索 → テスト対応 → プラン承認 → 1 ステップずつ解説 → 完了。effort 付き `code-review` があればバックグラウンドで並走させ、指摘を該当ステップに添える。
+- **[references/](plugins/pr-tour/skills/pr-tour/references/)** — 起点の辿り方、プランの書式、code-review の並走、テストの実測、保存先、レビューコメント下書き。
+- **[scripts/](plugins/pr-tour/skills/pr-tour/scripts/)** — base/head の fetch と変更ファイルのレイヤー分類、プランと視覚ビューの同時更新、図解用 SVG ヘルパー。
 
 ## 設計のポイント
 
