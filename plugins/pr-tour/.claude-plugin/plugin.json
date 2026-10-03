@@ -1,0 +1,11 @@
+{
+  "name": "pr-tour",
+  "version": "0.1.0",
+  "description": "PR を「エントリーポイントから実行が流れる順」にツアー形式で解説するスキル。行程表を提示してから 1 ステップ = 1 ターンで進み、各駅で既存実装 / このPRの差分 / リポジトリの約束事を分けて示す。図解は mermaid のアーティファクト 1 枚をサイドバー付きで段階更新。effort 付きの code-review スキルがあれば指摘を駅ごとに添える。",
+  "author": {
+    "name": "Ryu1240"
+  },
+  "repository": "https://github.com/Ryu1240/ryu-skills",
+  "license": "MIT",
+  "keywords": ["pull-request", "code-reading", "onboarding", "mermaid", "artifact"]
+}
