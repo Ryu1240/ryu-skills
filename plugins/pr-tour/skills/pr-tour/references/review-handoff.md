@@ -34,7 +34,7 @@ gh api "repos/<owner>/<repo>/pulls/comments?sort=created&direction=desc&per_page
 
 ## 3. 下書きを保存する
 
-`.claude/pr-tour/pr-<番号>-review-draft.md` に、総評（PR 全体）と各コメント（対象・本文）を書く。投稿前にユーザーに見せて、文言と温度感の合意を取る。
+プランと同じ場所の `<プランの basename>-review-draft.md`（例: `.claude/pr-tour/pr-<番号>-review-draft.md`）に、総評（PR 全体）と各コメント（対象・本文）を書く。投稿前にユーザーに見せて、文言と温度感の合意を取る。
 
 ## 4. Pending review として PR に置く
 

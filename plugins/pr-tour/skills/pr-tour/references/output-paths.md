@@ -10,8 +10,8 @@
 |---|---|
 | プラン（正） | `.claude/pr-tour/pr-<番号>.md`（PR が無いブランチは `branch-<ブランチ名をハイフン化>.md`） |
 | 視覚ビュー | 同じ名前の `.html` |
-| 敵対的レビューの結果 | `.claude/pr-tour/pr-<番号>-adversarial-review.md` |
-| レビュー下書き（Phase 6） | `.claude/pr-tour/pr-<番号>-review-draft.md` |
+| 敵対的レビューの結果 | プランと同じ basename に `-adversarial-review.md` を付ける（例: `pr-<番号>-adversarial-review.md`、`branch-<名前>-adversarial-review.md`） |
+| レビュー下書き（Phase 6） | プランと同じ basename に `-review-draft.md` を付ける |
 | 図解の一時ファイル | スクラッチパッド（無ければ `.claude/pr-tour/tmp/`） |
 
 ## git 追跡外を保証する
@@ -31,4 +31,4 @@ git check-ignore -q .claude/pr-tour || echo "/.claude/pr-tour/" >> "$(git rev-pa
 
 ## 対象リポジトリのクローンが手元に無いとき
 
-書き込む先のリポジトリが無いので、プラン一式をスクラッチパッドに置き、その旨をプランの先頭に書く。スクラッチパッドはセッション固有なので、別セッションからの再開はできない（→ SKILL.md「再開」）。
+書き込む先のリポジトリが無いので、プラン一式（敵対的レビューの結果と下書きも含む）をスクラッチパッドに置き、その旨をプランの先頭に書く。スクラッチパッドはセッション固有なので、別セッションからの再開はできない（→ SKILL.md「再開」）。

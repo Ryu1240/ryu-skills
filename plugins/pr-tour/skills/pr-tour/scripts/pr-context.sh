@@ -151,7 +151,7 @@ echo "[plan]"
 PLAN=".claude/pr-tour/pr-$ID.md"
 [ "${ID#branch-}" != "$ID" ] && PLAN=".claude/pr-tour/$ID.md"
 if [ -f "$PLAN" ]; then
-  AGE_MIN=$(( ( $(date +%s) - $(stat -f %m "$PLAN" 2>/dev/null || stat -c %Y "$PLAN") ) / 60 ))
+  AGE_MIN=$(( ( $(date +%s) - $(date -r "$PLAN" +%s) ) / 60 ))
   SESSION_LINE="$(grep -m1 -E '^- session:' "$PLAN" || echo '- session: （記録なし）')"
   STEP_LINE="$(grep -m1 -E '^- 現在のステップ:' "$PLAN" || true)"
   RECORDED_HEAD="$(grep -m1 -oE 'head \(([0-9a-f]{7,40})' "$PLAN" | grep -oE '[0-9a-f]{7,40}' || true)"
