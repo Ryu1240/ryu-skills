@@ -208,3 +208,19 @@ TDD 系とは独立した、**PR を理解するための**スキルです（ski
 - **状態の永続化**: 進行状態を `.claude/tdd-workflow/` の JSON に保存し、いつでも中断・再開できます。
 - **承認ゲートは 2 箇所**（Red 完了後・Commit 直前）。既定はフェーズ停止、`--auto` で一気通貫。
 - **共通契約は単一情報源**: パス・テストコマンド・不変条件・状態スキーマ・コミット規約を `_shared-tdd/` にまとめ、全 skill が参照します。
+
+## このリポジトリで開発する場合
+
+クローンしたら、まず同梱の git hook を有効にしてください。
+
+```text
+git config core.hooksPath .githooks
+```
+
+pre-commit で次の 2 点を検査します。
+
+- **作者メールが GitHub の noreply アドレスか**（`<ID>+<ユーザー名>@users.noreply.github.com`）。個人のアドレスを公開履歴に残さないためです。
+- **別リポジトリ特有の情報が混ざっていないか**（[`scripts/check-foreign-info.sh`](scripts/check-foreign-info.sh)）。スキルとサンプルは架空の名前（`sales-hub` / `shipment-api` など）で書く前提なので、オーナーの他リポジトリ名・ローカルの絶対パス・個人のメール・実在の Notion ページを検出したらコミットを止めます。
+  - 他リポジトリ名の一覧は `gh repo list` から取得して `.git/info/` に 1 日キャッシュします。一覧そのものをリポジトリに置かないためです。
+  - 社名などの追加の禁止語は `.git/info/foreign-denylist`、誤検知の除外は `.git/info/foreign-allowlist` に 1 行 1 つの正規表現で書きます（どちらも追跡されません）。
+  - `scripts/check-foreign-info.sh --all` で、追跡中の全ファイルをまとめて検査できます。

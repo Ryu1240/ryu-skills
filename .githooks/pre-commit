@@ -1,0 +1,14 @@
+#!/bin/sh
+# 公開リポジトリなので、作者メールは GitHub の noreply アドレスに限る（個人のアドレスを履歴に残さない）
+email=$(git var GIT_AUTHOR_IDENT | sed -E 's/.*<([^>]*)>.*/\1/')
+case "$email" in
+  *@users.noreply.github.com) ;;
+  *)
+    echo "作者メールが noreply ではありません: $email" >&2
+    echo "git config user.email <ID>+<ユーザー名>@users.noreply.github.com を設定してください" >&2
+    exit 1
+    ;;
+esac
+
+# 別リポジトリ特有の情報が混ざっていないかを検査する（scripts/check-foreign-info.sh）
+exec "$(git rev-parse --show-toplevel)/scripts/check-foreign-info.sh" --staged
