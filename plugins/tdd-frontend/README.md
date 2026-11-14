@@ -63,10 +63,10 @@ plugin 同梱の `_shared-tdd/project-settings.md` は架空リポ `storefront` 
 # Notion タスクから計画
 /tdd https://www.notion.so/<task-id>
 
-# 自由テキストから計画
+# 自由テキストから計画 → 承認すれば同じセッションのまま Red へ進む
 /tdd "商品一覧に在庫フィルタを追加し composable で状態管理"
 
-# 既存ワークフローを実行（既定はフェーズ停止）
+# 中断したワークフローを別セッションで再開（既定はフェーズ停止）
 /tdd tdd-20260613-101500
 
 # 一気通貫モード
@@ -77,3 +77,5 @@ plugin 同梱の `_shared-tdd/project-settings.md` は架空リポ `storefront` 
 ```
 
 計画フェーズは状態 JSON を書き出すため、Plan モードではなく通常モードで実行してください。
+
+1 つのワークフローは計画から最適化まで同じセッションで進めるのが基本です（計画時の分析や判断の経緯が次のフェーズに活きるため）。状態 JSON は中断・compact からの再開用に書き出されます。

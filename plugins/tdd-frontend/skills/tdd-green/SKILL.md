@@ -1,8 +1,7 @@
 ---
 name: tdd-green
-description: Green phase - Minimal implementation in storefront (Vue 3 / TypeScript) to pass the failing test
+description: TDD の Green フェーズ。Red で追加した失敗テストを通す最小限の Vue 3 / TypeScript 実装を書く。通常は /tdd から呼ばれる。
 argument-hint: <workflow_id>
-model: opus
 allowed-tools:
   - Read
   - Write
@@ -18,10 +17,11 @@ examples:
     description: Execute Green phase for the current cycle
 ---
 
-TDD の Green フェーズ。今サイクルの失敗テストを通す**最小限の実装**を行う。
+TDD の Green フェーズ。今サイクルの失敗テストを通す最小限の実装を行う。
 
-## 共通契約（必ず Read）
-- `.claude/skills/_shared-tdd/project-settings.md`（**不変条件**）/ `workflow-schema.md` / `state-machine.md`
+## 共通契約
+このセッションでまだ読んでいない（または compact 後で内容が手元にない）ときだけ Read する。`/tdd` から続けて呼ばれた場合は読み込み済み。
+- `.claude/skills/_shared-tdd/project-settings.md`（不変条件）/ `workflow-schema.md` / `state-machine.md`
 
 > 原則: ✅テストを通す最小実装 ❌先回り実装 ❌リファクタ（次フェーズ）❌新規テスト追加。
 
@@ -34,11 +34,11 @@ TDD の Green フェーズ。今サイクルの失敗テストを通す**最小�
 ## 2. 実装（最小）
 
 ### Vue / TS — 必須パターン
-- **Composition API + `<script setup>`** を既存慣習に合わせて使用。型は明示（`defineProps<...>()` / `defineEmits<...>()`）。
-- **composable** は `use*` 命名・純粋なロジック（reactive な返り値）。副作用は最小限。
-- **store（Pinia）** は `defineStore`。state/getter/action を最小限で。
-- **API 連携**: 実装は API クライアント経由。テストを通すための正常系 **MSW handler**（`src/testUtils/mocks/handlers/...`）を用意（テスト側は異常系を `server.use(...)` で上書き）。
-- 実装していない分岐・props・状態は**先行定義しない**（最小実装）。
+- Composition API + `<script setup>` を既存慣習に合わせて使用。型は明示（`defineProps<...>()` / `defineEmits<...>()`）。
+- composable は `use*` 命名・純粋なロジック（reactive な返り値）。副作用は最小限。
+- store（Pinia） は `defineStore`。state/getter/action を最小限で。
+- API 連携: 実装は API クライアント経由。テストを通すための正常系 MSW handler（`src/testUtils/mocks/handlers/...`）を用意（テスト側は異常系を `server.use(...)` で上書き）。
+- 実装していない分岐・props・状態は先行定義しない（最小実装）。
 
 ## 3. テスト pass 確認
 - `yarn test {spec_path}`（または `npx vitest run {spec_path}`）
@@ -48,11 +48,10 @@ TDD の Green フェーズ。今サイクルの失敗テストを通す**最小�
 
 ## 4. 状態更新
 `current-cycle.json` を Edit: `phase:"green"`, `test_details`(passed/total/failed:0), `implementation_files`(非空), `retry_count`。
-**自己検証**: `phase=="green"` かつ `implementation_files` 非空を Read で確認。
 
 ## 5. サマリ（簡潔）
 実装した component/composable/store/util / MSW handler の有無 / 全 pass（リトライ回数）/ 次は Refactor。→ 自動遷移。
 
 ## 注意
-- **型を握りつぶさない**: `any` や `@ts-ignore` で通さない。型エラーは実装で解消（必要なら `yarn typecheck` で確認）。
+- 型を握りつぶさない: `any` や `@ts-ignore` で通さない。型エラーは実装で解消（必要なら `yarn typecheck` で確認）。
 - i18n キーやルーティング定義など、テストが要求する最小分だけ追加する。
