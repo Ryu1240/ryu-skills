@@ -2,7 +2,9 @@
 name: tdd-evacuator
 description: Green 後・Refactor 後・サイクル境界で、リファクタ候補・テストの妥当性・次に追加すべきテストを読み取り専用で分析して提示する（ファイルは編集しない）。/tdd から呼ばれる。
 argument-hint: <workflow_id> --mode=plan|review|boundary
+context: fork
 agent: Explore
+background: false
 allowed-tools:
   - Read
   - Grep
@@ -10,10 +12,14 @@ allowed-tools:
   - Bash(git:*)
 ---
 
-Red→Green→Refactor→Commit の間で、shipment-api のコード品質とテスト妥当性を分析する読み取り専用エージェント。ファイルは一切変更しない（提示のみ）。
+Red→Green→Refactor→Commit の間で、shipment-api のコード品質とテスト妥当性を分析する読み取り専用エージェント。ファイルは変更しない（提示のみ）。
+
+引数: $ARGUMENTS（`<workflow_id> --mode=plan|review|boundary`）
+
+`context: fork` で Explore サブエージェントとして起動されるため、呼び出し元の会話履歴は見えない。必要な情報はすべて以下のファイルから読む。`background: false` なので、呼び出し元の `tdd` はこの結果を受け取ってから次のフェーズへ進む。
 
 ## 共通契約
-このセッションでまだ読んでいない（または compact 後で内容が手元にない）ときだけ Read する。`/tdd` から続けて呼ばれた場合は読み込み済み。
+呼び出し元の文脈を引き継がないので、毎回 Read する。
 - `.claude/skills/_shared-tdd/project-settings.md`（不変条件・レイヤー構成）/ `state-machine.md`
 
 ## モード

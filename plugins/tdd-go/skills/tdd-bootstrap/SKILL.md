@@ -48,7 +48,7 @@ Go プロジェクトを走査し、`.claude/skills/_shared-tdd/` 配下に proj
 | 検出項目 | 確認方法 |
 |---|---|
 | モジュール名 / Go バージョン | `go.mod` の `module` / `go` ディレクティブ（`go version` で実行環境も確認） |
-| プロジェクト種別 | `cmd/*/main.go` を Read。`net/http` / ルーターの起動なら HTTP サーバー、`cobra` / `urfave/cli` / `flag` 主体なら CLI、`lambda` / `pubsub` なら ワーカー |
+| プロジェクト種別 | `cmd/*/main.go` を Read。`net/http` / ルーターの起動なら HTTP サーバー、`cobra` / `urfave/cli` / `flag` 主体なら CLI、`lambda` / `pubsub` ならワーカー |
 | ルーター | `go.mod` の require に `go-chi/chi` / `gin-gonic/gin` / `labstack/echo` / `gofiber/fiber` / `gorilla/mux`。無ければ標準 `net/http` ServeMux |
 | アサーション | `google/go-cmp` / `stretchr/testify` / 標準のみ（既存 `_test.go` を Grep して実際の使用を確認） |
 | モック | `golang/mock` or `uber-go/mock`（gomock）/ `vektra/mockery` / `matryer/moq` の `//go:generate` 行。無ければ手書きフェイク（`internal/testutil/` や `_test.go` 内の `type fakeXxx struct`） |
@@ -136,7 +136,7 @@ plugin 同梱テンプレ（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/project-se
 - 不変条件: DB を使わないなら 3 のロールバック記述を調整、レイヤー名は 6 を実態に合わせる。CLI なら 6 の「handler → service → repository」を CLI の依存方向に書き換える。
 
 ### 5-2. `commit-convention.md` / `workflow-schema.md` / `state-machine.md`
-plugin 同梱の テンプレ（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/{filename}`）を Read して Write する（プロジェクト固有差分は project-settings.md に集約）。ただし 3 ファイルの見出しのリポ名（`— shipment-api`）は実プロジェクト名に置換し、`commit-convention.md` の「pre-commit hook あり」の段落は検出結果に合わせる（hook 無しなら「hook が無いため、コミット前に `make lint` 等を手動実行する」に書き換える）。`${CLAUDE_PLUGIN_ROOT}` が解決できない環境では `plugins/tdd-go/skills/_shared-tdd/{filename}` を相対 Read する。
+plugin 同梱のテンプレ（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/{filename}`）を Read して Write する（プロジェクト固有差分は project-settings.md に集約）。ただし 3 ファイルの見出しのリポ名（`— shipment-api`）は実プロジェクト名に置換し、`commit-convention.md` の「pre-commit hook あり」の段落は検出結果に合わせる（hook 無しなら「hook が無いため、コミット前に `make lint` 等を手動実行する」に書き換える）。`${CLAUDE_PLUGIN_ROOT}` が解決できない環境では `plugins/tdd-go/skills/_shared-tdd/{filename}` を相対 Read する。
 
 ### 5-3. 生成内容の検証
 生成した `project-settings.md` を Read し直し、テスト実行コマンドが実在するかを確認する：`Makefile` のターゲット名と整合するか、`go list ./...` の出力にコマンド中のパッケージパスが含まれるか。可能なら `go vet ./...` を実行し、`_test.go` を含めて型検査が通ることを確認する（`go test -run '^$'` は `TestMain` を実行してしまい DB 接続等が走るので使わない）。
