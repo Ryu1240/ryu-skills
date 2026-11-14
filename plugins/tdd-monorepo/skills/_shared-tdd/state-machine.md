@@ -18,7 +18,7 @@
 | 9 | Coverage Review | `tdd-coverage-review` | 全サイクル完了 or 早期終了 | 不足 spec 追加・コミット、`coverage_review` 記録 | 自動遷移 |
 | 10 | Optimize | `tdd-optimize` | Coverage Review 後 | 最適化（承認後）・レポート | 停止（完了サマリ） |
 
-> 追加テスト提案のタイミング: 次サイクル以降のエッジケース提案は #8（サイクル境界） で `tdd-evacuator --mode=boundary` が生成し、停止時に提示する（`[+]` で `cycle_plan` に採用）。`#4 Evac(plan)` は今サイクルのリファクタ/妥当性のみを扱う。`auto` では #8 の提案はスキップし、計画どおり進む。
+> 追加テスト提案のタイミング: 次サイクル以降のエッジケース提案は #8（サイクル境界）で `tdd-evacuator --mode=boundary` が生成し、停止時に提示する（`[+]` で `cycle_plan` に採用）。`#4 Evac(plan)` は今サイクルのリファクタ/妥当性のみを扱う。`auto` では #8 の提案はスキップし、計画どおり進む。
 
 ## 2つの実行モード（`run_mode`）
 
@@ -34,7 +34,7 @@
 
 状態 JSON（`workflow-{id}.json` / `current-cycle.json`）は、中断・別セッションでの再開・compact で文脈が要約されたときに復帰するための記録として書き続ける。各フェーズの入口ゲートが JSON を確認するのは、単独起動や再開時の不整合を止めるため（小さいファイルなので同一セッションでも省かない）。各フェーズの backend/frontend 分岐もこの JSON の `ecosystem` に従うので、再開後も分岐は変わらない。
 
-`tdd-evacuator` だけは Explore サブエージェントとして別の文脈で動かす。実装を書いた側の思い込みを持ち込まずにレビューさせるのが狙いで、文脈を引き継がないのは意図どおり（そのため `ecosystem` も JSON から読み直す）。
+`tdd-evacuator` だけは `context: fork` + `agent: Explore` で別の文脈のサブエージェントとして動かす（`background: false` で結果を待ってから次へ進む）。共通契約や状態 JSON は毎回自分で Read する（`ecosystem` も JSON から読み直す）。実装を書いた側の思い込みを持ち込まずにレビューさせるのが狙いで、文脈を引き継がないのは意図どおり。
 
 ## 承認ゲート（人間レビュー）
 

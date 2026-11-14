@@ -98,7 +98,7 @@ plugin 同梱テンプレ（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/project-se
 - 片方のエコシステムのみのプロジェクトなら、もう一方の列・記述を削除する。
 
 ### 4-2. `commit-convention.md` / `workflow-schema.md` / `state-machine.md`
-plugin 同梱の テンプレ（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/{filename}`）を Read して Write する（プロジェクト固有の差分は project-settings.md に集約。パッケージパスの実値が必要なら state-machine.md の lint コマンド例だけ置換）。ただし 3 ファイルの見出しのリポ名（`— retail-hub`）は実プロジェクト名に置換し、`commit-convention.md` の「pre-commit hook あり（husky + lint-staged）」の段落は検出結果に合わせる（hook 無しなら「hook が無いため、コミット前に lint を手動実行する」に書き換える）。`${CLAUDE_PLUGIN_ROOT}` が解決できない環境では `plugins/tdd-monorepo/skills/_shared-tdd/{filename}` を相対 Read する。
+plugin 同梱のテンプレ（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/{filename}`）を Read して Write する（プロジェクト固有の差分は project-settings.md に集約。パッケージパスの実値が必要なら state-machine.md の lint コマンド例だけ置換）。ただし 3 ファイルの見出しのリポ名（`— retail-hub`）は実プロジェクト名に置換し、`commit-convention.md` の「pre-commit hook あり（husky + lint-staged）」の段落は検出結果に合わせる（hook 無しなら「hook が無いため、コミット前に lint を手動実行する」に書き換える）。`${CLAUDE_PLUGIN_ROOT}` が解決できない環境では `plugins/tdd-monorepo/skills/_shared-tdd/{filename}` を相対 Read する。
 
 ## Step 5: ワークフロー状態の git 追跡設定（確認）
 

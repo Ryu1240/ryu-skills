@@ -1,7 +1,7 @@
 # TDD スキル共通設定（Project Settings）— retail-hub
 
 > 全 TDD スキルの単一情報源。各スキルは `Read .claude/skills/_shared-tdd/project-settings.md` で参照する。
-> retail-hub は Rails(RSpec) バックエンド + Vue3/TypeScript(Vitest) フロントエンド のモノレポ。
+> retail-hub は Rails(RSpec) バックエンド + Vue3/TypeScript(Vitest) フロントエンドのモノレポ。
 
 ## 2つのエコシステム
 
