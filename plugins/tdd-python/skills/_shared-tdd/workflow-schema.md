@@ -1,11 +1,11 @@
 # ワークフロー状態スキーマ（正準・単一情報源）
 
-> `.claude/tdd-workflow/workflow-{id}.json` と `current-cycle.json` の**唯一の正しい形**。
-> 全スキルはこのスキーマで読み書きする。**キー名の別名・揺れは禁止**（別名が混在すると別インスタンスが状態を読めなくなる）。
+> `.claude/tdd-workflow/workflow-{id}.json` と `current-cycle.json` の唯一の正しい形。
+> 全スキルはこのスキーマで読み書きする。キー名の別名・揺れは禁止（別名が混在すると別インスタンスが状態を読めなくなる）。
 
 ## キー名の固定（別名禁止）
 
-| 概念 | **正準キー（これだけ使う）** | 使ってはいけない別名 |
+| 概念 | 正準キー（これだけ使う） | 使ってはいけない別名 |
 |---|---|---|
 | サイクル計画 | `cycle_plan` | ~~`cycles_plan`~~ |
 | TODOタスクID | `todo_task_id` | ~~`todo_task_ids`~~ |
@@ -69,7 +69,7 @@
 target_files, patterns, user_instructions, run_mode, cycle_plan, total_cycles, current_cycle,
 todo_task_id, completed_cycles, created_at, updated_at`
 
-計画フェーズは、上記必須キーを満たす JSON を Write し、**Read で自己検証してから**完了とする。
+計画フェーズは、上記必須キーをすべて満たす JSON を Write して完了とする。
 1つでも欠ければ計画フェーズは未完了（完了メッセージを出さない）。
 
 ## current-cycle.json スキーマ（進行中サイクルのみ）
@@ -92,8 +92,7 @@ todo_task_id, completed_cycles, created_at, updated_at`
 }
 ```
 
-- **commit 完了時に `current-cycle.json` を削除**し、`workflow-{id}.json` の `completed_cycles` に移す。
-  削除後に「ファイルが存在しないこと」を Read で確認する。
+- commit 完了時に `current-cycle.json` を削除し、`workflow-{id}.json` の `completed_cycles` に移す。
 - 次サイクルの Red 入口は「`current-cycle.json` が存在しない」を前提条件に検証する。
 
 ## 実例（Task スキーマ追加・抜粋）

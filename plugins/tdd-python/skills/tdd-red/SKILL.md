@@ -1,6 +1,6 @@
 ---
 name: tdd-red
-description: Red phase - Write ONE failing pytest test for taskcli (schema roundtrip / logic / validation), confirm it fails as expected
+description: TDD の Red フェーズ。失敗する pytest テスト（テスト関数1つ、または parametrize の1エントリ）を1つだけ追加し、期待どおりに失敗することを確認する（schema roundtrip / validation / logic）。通常は /tdd から呼ばれる。単独では「失敗するテストを1つ書いて」と頼まれたときに使う。
 argument-hint: <workflow_id> [test_file_path]
 model: opus
 allowed-tools:
@@ -18,17 +18,18 @@ examples:
     description: Execute Red phase for the current cycle
 ---
 
-TDD の Red フェーズ。**今サイクルのテストを1つだけ**追加し、期待通り失敗することを確認する。
+TDD の Red フェーズ。今サイクルのテストを1つだけ追加し、期待通り失敗することを確認する。
 
-## 共通契約（必ず Read）
-- `.claude/skills/_shared-tdd/project-settings.md`（対象・パス・**不変条件**・現行構成・テストファイル選択表）
+## 共通契約
+このセッションでまだ読んでいない（または compact 後で内容が手元にない）ときだけ Read する。`/tdd` から続けて呼ばれた場合は読み込み済み。
+- `.claude/skills/_shared-tdd/project-settings.md`（対象・パス・不変条件・現行構成・テストファイル選択表）
 - `.claude/skills/_shared-tdd/workflow-schema.md`（状態スキーマ）
 - `.claude/skills/_shared-tdd/state-machine.md`（このフェーズの事前/事後条件）
 
-> 🔴 **一度に1テストケースのみ**（テスト関数 or 1 parametrize エントリ）。複数追加は不変条件違反。
+> 🔴 一度に1テストケースのみ（テスト関数 or 1 parametrize エントリ）。複数追加は不変条件違反。
 
 ## 入口ゲート（cycle 2 以降）
-`current-cycle.json` が**存在しないこと**を Read で確認（存在＝前サイクル未完了 → 中断し `/tdd-commit {id}` を案内）。
+`current-cycle.json` が存在しないことを Read で確認（存在＝前サイクル未完了 → 中断し `/tdd-commit {id}` を案内）。
 `workflow-{id}.json` の `completed_cycles` 長 == `current_cycle - 1` を確認。不一致なら中断。
 
 ## 1. コンテキスト
@@ -69,7 +70,7 @@ def test_task_create_extra_field_forbidden() -> None:
 ```
 
 ### kind = logic（CLI コマンド / storage / IO 関数）
-対象関数の1挙動を検証する関数を1つ追加。外部依存（ファイル/IO）は `conftest.py` の共有 fixture・モックを利用（project-settings 参照）。正常系/異常系/境界のうち**今サイクルの1つだけ**。
+対象関数の1挙動を検証する関数を1つ追加。外部依存（ファイル/IO）は `conftest.py` の共有 fixture・モックを利用（project-settings 参照）。正常系/異常系/境界のうち今サイクルの1つだけ。
 ```python
 def test_<func>_<behavior>() -> None:
     result = <call under test>
@@ -84,9 +85,8 @@ cd taskcli && docker compose run --rm app pytest -v {rel_path} -k {keyword}
 予期しない失敗（`SyntaxError`/`NameError`/collection error）はテストコードの誤り → 修正して再実行。
 
 ## 5. 状態更新
-`current-cycle.json` を `workflow-schema.md` の current-cycle スキーマで Write（`phase:"red"`, `test_file_path`, `target_module`, **`test_case_count`**（`test_file_path` 内の `def test_` の定義数。`@pytest.mark.parametrize` はケース数でなく定義数で数え、パラメータ追加は parametrize の要素数の増加として別途比較する。Evac(review) の基準値）, `test_details`(error_type/message), `fixture_files_added`, `created_at`/`updated_at`）。
+`current-cycle.json` を `workflow-schema.md` の current-cycle スキーマで Write（`phase:"red"`, `test_file_path`, `target_module`, `test_case_count`（`test_file_path` 内の `def test_` の定義数。`@pytest.mark.parametrize` はケース数でなく定義数で数え、パラメータ追加は parametrize の要素数の増加として別途比較する。Evac(review) の基準値）, `test_details`(error_type/message), `fixture_files_added`, `created_at`/`updated_at`）。
 `workflow-{id}.json` の `updated_at` を更新。
-**自己検証**: 両ファイルを Read し `phase=="red"`・`updated_at` 更新を確認。
 
 ## 6. サマリ（簡潔）
 テストファイル / 追加した1テスト / 期待通りの失敗（種類）/ 次は Green。

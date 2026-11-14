@@ -1,8 +1,7 @@
 ---
 name: tdd-green
-description: Green phase - Minimal implementation in taskcli to pass the failing test (pydantic models in schemas/, or logic functions)
+description: TDD の Green フェーズ。Red で追加した失敗テストを通す最小限の実装（schemas/ の pydantic モデル、またはロジック関数）を書く。通常は /tdd から呼ばれる。
 argument-hint: <workflow_id>
-model: opus
 allowed-tools:
   - Read
   - Write
@@ -17,10 +16,11 @@ examples:
     description: Execute Green phase for the current cycle
 ---
 
-TDD の Green フェーズ。**今サイクルのテストを通す最小限の実装のみ**を追加する。
+TDD の Green フェーズ。今サイクルのテストを通す最小限の実装のみを追加する。
 
-## 共通契約（必ず Read）
-- `.claude/skills/_shared-tdd/project-settings.md`（**不変条件**・現行構成）
+## 共通契約
+このセッションでまだ読んでいない（または compact 後で内容が手元にない）ときだけ Read する。`/tdd` から続けて呼ばれた場合は読み込み済み。
+- `.claude/skills/_shared-tdd/project-settings.md`（不変条件・現行構成）
 - `.claude/skills/_shared-tdd/workflow-schema.md`
 - `.claude/skills/_shared-tdd/state-machine.md`
 
@@ -41,9 +41,9 @@ TDD の Green フェーズ。**今サイクルのテストを通す最小限の�
 
 ### schema 系（pydantic モデル）
 対象モデル群ファイル（`schemas/task.py` 等）を Read し、`StrictModel`（`schemas/_common.py`）継承で新規モデルを追加。
-- 既存の命名規則定数・共通バリデータ・`TaskStatus` 等を `schemas/_common.py` から**再利用**（再定義しない）。
+- 既存の命名規則定数・共通バリデータ・`TaskStatus` 等を `schemas/_common.py` から再利用（再定義しない）。
 - 新制約は `@field_validator` / `@model_validator(mode="after")`。
-- **公開**: `schemas/__init__.py` の import と `__all__` に追加（テストは `from taskcli.schemas import X` で読む）。
+- 公開: `schemas/__init__.py` の import と `__all__` に追加（テストは `from taskcli.schemas import X` で読む）。
 - fixture 未作成なら `tests/fixtures/{snake}.json` に最小正常系を1件 Write（必須フィールドのみ、`extra="forbid"` で弾かれない構成、既存 fixture の値の現実性に合わせる）。
 
 ### logic 系（CLI コマンド/storage/IO）
@@ -59,7 +59,6 @@ cd taskcli && docker compose run --rm app pytest -v {rel_path}
 ## 4. 状態更新
 `current-cycle.json` を Edit: `phase:"green"`, `test_details`（passed/total/failed:0）, `implementation_files`（非空）, `retry_count`。
 `workflow-{id}.json` の `updated_at` 更新。
-**自己検証**: `phase=="green"` かつ `implementation_files` 非空を Read で確認。
 
 ## 5. サマリ（簡潔）
 追加したモデル/関数 / fixture / 全テスト pass（リトライ回数）/ 次は Refactor。→ 自動遷移（tdd が Evac(plan)→Refactor を続行）。
