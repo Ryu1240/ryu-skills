@@ -1,6 +1,6 @@
 ---
 name: tdd-coverage-review
-description: Test coverage review for taskcli - analyze (pydantic model / function) × test-category matrix and add missing test cases
+description: TDD 完了後に、対象（pydantic モデル / 関数）× テストカテゴリのマトリクスで pytest テストの抜けを洗い出し、承認されたケースを追加する。/tdd から呼ばれるほか、「テストの網羅性を見て」と頼まれたときにも使う。
 argument-hint: <workflow_id>
 model: opus
 allowed-tools:
@@ -20,7 +20,8 @@ examples:
 
 TDD 完了後、taskcli のテスト網羅性を「対象 × テストカテゴリ」のマトリクスで分析し、不足テストを追加する。
 
-## 共通契約（必ず Read）
+## 共通契約
+このセッションでまだ読んでいない（または compact 後で内容が手元にない）ときだけ Read する。`/tdd` から続けて呼ばれた場合は読み込み済み。
 - `.claude/skills/_shared-tdd/project-settings.md`（現行構成・テストファイル選択表・pytest-cov 未導入）
 - `.claude/skills/_shared-tdd/workflow-schema.md`
 - `.claude/skills/_shared-tdd/commit-convention.md`
@@ -28,7 +29,7 @@ TDD 完了後、taskcli のテスト網羅性を「対象 × テストカテゴ�
 > pytest-cov は未導入のため coverage% は使わない。「対象 × カテゴリ」のマトリクスで漏れを検出する。
 
 ## 入口ゲート
-`current-cycle.json` が**存在しないこと**（サイクル進行中でない）と `completed_cycles` 非空を確認。進行中なら `/tdd-commit {id}` を案内し中断。
+`current-cycle.json` が存在しないこと（サイクル進行中でない）と `completed_cycles` 非空を確認。進行中なら `/tdd-commit {id}` を案内し中断。
 
 ## 1. コンテキスト
 `workflow-{id}.json`（`target_module`, `task_title`, `completed_cycles`, `todo_task_id`）を Read。
@@ -57,7 +58,7 @@ schema 系なら `Grep "^class .+\(StrictModel\)"` を `schemas/` に対して�
 ※「該当時必須/条件付き/推奨」は該当する実装が無ければ提案しない。
 
 ## 4. 追加・実行
-選択分を対応テストファイルの適切なセクションに追加（既存テストは変更しない。`load_json` 再利用、新規 fixture は基本作らず既存を改変）。
+選択分を対応テストファイルの適切なセクションに追加（既存テストは変更しない＝既存の意味を変えると網羅性の比較が成り立たないため。`load_json` 再利用、新規 fixture は基本作らず既存を改変）。
 ```bash
 cd taskcli && docker compose run --rm app pytest -v
 ```
