@@ -20,7 +20,7 @@ examples:
 
 TDD 完了後の pytest テスト最適化。**テストの独立性を保ったまま**、重複 fixture 読み込み・冗長 assert・類似テスト関数を集約し可読性/保守性を上げる。
 
-> このスキルは承認後にファイルを編集する（`model: opus` で Edit 可能。旧版は `agent: Explore` 指定で Edit が空振りしていた）。
+> このスキルは承認後にファイルを編集する（`agent: Explore` を付けない — Explore は Write/Edit を持たず、承認後の適用が空振りする）。
 
 ## 共通契約（必ず Read）
 - `.claude/skills/_shared-tdd/project-settings.md`（現行構成・`load_json`・docker 実行・未導入ツール）

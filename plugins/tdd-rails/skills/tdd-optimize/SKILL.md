@@ -21,7 +21,7 @@ examples:
 
 TDD 完了後の sales-hub 向けテスト最適化。**テストの独立性を保ったまま**、重複リクエスト・冗長 assert・類似テストを集約し、実行速度と可読性を上げる。
 
-> このスキルは承認後にファイルを編集する（`model: opus` で Edit 可能。旧版は `agent: Explore` 指定で適用が空振りしていた）。
+> このスキルは承認後にファイルを編集する（`agent: Explore` を付けない — Explore は Write/Edit を持たず、承認後の適用が空振りする）。
 
 ## 共通契約（必ず Read）
 - `.claude/skills/_shared-tdd/project-settings.md`（テストコマンド）/ `state-machine.md`
