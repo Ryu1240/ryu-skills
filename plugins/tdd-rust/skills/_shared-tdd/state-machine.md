@@ -6,44 +6,52 @@
 
 | # | フェーズ | スキル | 事前条件（入口ゲート） | 完了時の事後条件 | 既定モードの挙動 |
 |---|---|---|---|---|---|
-| 1 | Plan | `tdd`（計画） | — | `workflow-{id}.json` が正準スキーマの必須キーを満たし自己検証済み（`status:planning_done`） | **停止** |
-| 2 | Red | `tdd-red` | 前サイクルの `current-cycle.json` 不在（cycle2+）。計画 JSON 存在 | `current-cycle.json` (`phase:red`) 作成。テストが期待通り失敗（未定義によるコンパイルエラーを含む） | **承認ゲート①で停止** |
+| 1 | Plan | `tdd`（計画） | — | `workflow-{id}.json` が正準スキーマの必須キーを満たす（`status:planning_done`） | 停止 |
+| 2 | Red | `tdd-red` | 前サイクルの `current-cycle.json` 不在（cycle2+）。計画 JSON 存在 | `current-cycle.json` (`phase:red`) 作成。テストが期待通り失敗（未定義によるコンパイルエラーを含む） | 承認ゲート①で停止 |
 | 3 | Green | `tdd-green` | `phase=="red"` | `phase:green`、`implementation_files` 非空、対象テストが pass | 自動遷移 |
 | 4 | Evac(plan) | `tdd-evacuator --mode=plan` | `phase=="green"` | 今サイクルのリファクタ候補・テスト妥当性の提示のみ（read-only） | 自動遷移 |
 | 5 | Refactor | `tdd-refactor` | `phase=="green"` | `phase:refactor`、`refactor_details` 非空、pass 維持 | 自動遷移 |
 | 6 | Evac(review) | `tdd-evacuator --mode=review` | `phase=="refactor"` | 評価提示。新規テスト追加なしを確認 | 自動遷移→承認ゲート②へ |
-| 7 | Commit | `tdd-commit` | `phase=="refactor"`、`refactor_details` 非空 | コミット、`completed_cycles` 追記、`current_cycle+1`、`current-cycle.json` 削除＆不在確認 | **承認ゲート②で停止** |
-| 8 | ループ判定 | `tdd` + `tdd-evacuator --mode=boundary` | Commit 検証ゲート pass | 次サイクル以降の**追加テスト提案を提示**。未完了→2へ / 全完了→9へ | **停止**（提案を提示し、次サイクルへ進むか `[+]` で追加かを確認） |
+| 7 | Commit | `tdd-commit` | `phase=="refactor"`、`refactor_details` 非空 | コミット、`completed_cycles` 追記、`current_cycle+1`、`current-cycle.json` 削除＆不在確認 | 承認ゲート②で停止 |
+| 8 | ループ判定 | `tdd` + `tdd-evacuator --mode=boundary` | Commit 検証ゲート pass | 次サイクル以降の追加テスト提案を提示。未完了→2へ / 全完了→9へ | 停止（提案を提示し、次サイクルへ進むか `[+]` で追加かを確認） |
 | 9 | Coverage Review | `tdd-coverage-review` | 全サイクル完了 or 早期終了 | 不足テスト追加・コミット、`coverage_review` 記録 | 自動遷移 |
-| 10 | Optimize | `tdd-optimize` | Coverage Review 後 | 最適化（承認後）・レポート | **停止**（完了サマリ） |
+| 10 | Optimize | `tdd-optimize` | Coverage Review 後 | 最適化（承認後）・レポート | 停止（完了サマリ） |
 
-> **追加テスト提案のタイミング**: 次サイクル以降のエッジケース提案は **#8（サイクル境界）** で `tdd-evacuator --mode=boundary` が生成し、停止時に提示する（`[+]` で `cycle_plan` に採用）。`#4 Evac(plan)` は今サイクルのリファクタ/妥当性のみを扱う。`auto` では #8 の提案はスキップし、計画どおり進む。
+> 追加テスト提案のタイミング: 次サイクル以降のエッジケース提案は #8（サイクル境界） で `tdd-evacuator --mode=boundary` が生成し、停止時に提示する（`[+]` で `cycle_plan` に採用）。`#4 Evac(plan)` は今サイクルのリファクタ/妥当性のみを扱う。`auto` では #8 の提案はスキップし、計画どおり進む。
 
 ## 2つの実行モード（`run_mode`）
 
-ユーザー方針: **既定はフェーズ停止。一気通貫は opt-in。切替は都度。**
+ユーザー方針: 既定はフェーズ停止。一気通貫は opt-in。切替は都度。
 
-- **`phase-stop`（既定）**: 停止マーク（承認ゲート①②・Plan完了・ループ判定）で必ずターンを終える。自動遷移マーク（Green/Evac/Refactor）は止めず連続実行。各停止点で状態を JSON に確定保存してから終える。
-- **`auto`（opt-in: 起動時 `--auto` or 途中チェックポイントで選択）**: 停止マークでも止まらず Opus が代行レビューして連続実行。整合なら継続、下記「停止すべき条件」に該当したら強制停止。
+- `phase-stop`（既定）: 停止マーク（承認ゲート①②・Plan完了・ループ判定）ではターンを終えてユーザーの返答を待ち、返答を受けたら同じセッションで次へ進む。自動遷移マーク（Green/Evac/Refactor）は止めず連続実行。各停止点では状態を JSON に保存してからターンを終える。
+- `auto`（opt-in: 起動時 `--auto` or 途中チェックポイントで選択）: 停止マークでも止まらず、Claude 自身が承認ゲートの代わりにレビューして連続実行。整合なら継続、下記「停止すべき条件」に該当したら強制停止。
 - 切替は `workflow-{id}.json.run_mode` を更新（永続化されるので再開時も維持）。
+
+## セッションと状態ファイル
+
+1つのワークフローは計画から最適化まで同じセッションで進めるのが基本。計画時の分析・承認時のやり取り・前サイクルで見えた設計判断は会話の文脈に残り、次のフェーズの判断材料になる。
+
+状態 JSON（`workflow-{id}.json` / `current-cycle.json`）は、中断・別セッションでの再開・compact で文脈が要約されたときに復帰するための記録として書き続ける。各フェーズの入口ゲートが JSON を確認するのは、単独起動や再開時の不整合を止めるため（小さいファイルなので同一セッションでも省かない）。
+
+`tdd-evacuator` だけは Explore サブエージェントとして別の文脈で動かす。実装を書いた側の思い込みを持ち込まずにレビューさせるのが狙いで、文脈を引き継がないのは意図どおり。
 
 ## 承認ゲート（人間レビュー）
 
-**2箇所のみ**（`run_mode` と直交）：
-- **ゲート①: Red 完了後** — 追加したテストコードを承認（Green 前）。
-- **ゲート②: Commit 直前**（Evac review 後）— Refactor 結果を承認（Commit 前）。
-- `phase-stop` は自然に停止。`auto` は Opus 代行レビュー（逸脱時は強制停止）。
+2箇所のみ（`run_mode` と直交）：
+- ゲート①: Red 完了後 — 追加したテストコードを承認（Green 前）。
+- ゲート②: Commit 直前（Evac review 後）— Refactor 結果を承認（Commit 前）。
+- `phase-stop` は自然に停止。`auto` は Claude が代行レビュー（逸脱時は強制停止）。
 
 ## 停止すべき条件（`auto` でも強制停止）
 
 1. 計画（cycle_plan）と実装/テストが矛盾する。
-2. 設計判断が必要（データモデル / API 契約変更 / レイヤー構成の変更 / **依存クレートの追加（`cargo add`）** / **`unsafe` の導入** / スコープ変更など）。
+2. 設計判断が必要（データモデル / API 契約変更 / レイヤー構成の変更 / 依存クレートの追加（`cargo add`） / `unsafe` の導入 / スコープ変更など）。
 3. 想定外のテスト失敗（期待した失敗以外、または Green/Refactor 後に pass しない）。
 4. 機密情報の検出（コミット前）。
 5. 状態 JSON の整合性検証に失敗。
 6. リトライ上限（Green は最大3回）到達。
-7. **pre-commit hook（cargo-husky / pre-commit / lefthook）または `just lint` でコミットがブロックされた**（`cargo fmt --check` / `cargo clippy -- -D warnings`）→ 修正して再試行、解決不能なら停止して報告。
-8. **`unsafe` / `unwrap()` / 無闇な `clone()` / `#[allow(clippy::...)]` でしか通らない**、または **borrow checker のエラーがモジュール構造の変更を要求する** → 設計の問題として停止し報告。
+7. pre-commit hook（cargo-husky / pre-commit / lefthook）または `just lint` でコミットがブロックされた（`cargo fmt --check` / `cargo clippy -- -D warnings`）→ 修正して再試行、解決不能なら停止して報告。
+8. `unsafe` / `unwrap()` / 無闇な `clone()` / `#[allow(clippy::...)]` でしか通らない、または borrow checker のエラーがモジュール構造の変更を要求する → 設計の問題として停止し報告。
 
 ## Linter / 静的解析（コミット時に hook が自動実行）
 
