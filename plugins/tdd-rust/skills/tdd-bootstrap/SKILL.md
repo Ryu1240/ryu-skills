@@ -139,7 +139,7 @@ plugin 同梱テンプレ（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/project-se
 - 不変条件: DB を使わないなら 3 の `#[sqlx::test]` 記述を調整（diesel なら `test_transaction`、sea-orm なら `MockDatabase`）、`thiserror` 未導入なら 5 を実際のエラー表現に合わせる、レイヤー名は 6 を実態に合わせる。
 
 ### 5-2. `commit-convention.md` / `workflow-schema.md` / `state-machine.md`
-plugin 同梱の テンプレ（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/{filename}`）を Read して Write する（プロジェクト固有差分は project-settings.md に集約）。ただし 3 ファイルの見出しのリポ名（`— ledger-core`）は実プロジェクト名に置換し、`commit-convention.md` の「pre-commit hook あり」の段落は検出結果に合わせる（hook 無しなら「hook が無いため、コミット前に `just lint` 等を手動実行する」に書き換える）。`${CLAUDE_PLUGIN_ROOT}` が解決できない環境では `plugins/tdd-rust/skills/_shared-tdd/{filename}` を相対 Read する。
+plugin 同梱のテンプレ（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/{filename}`）を Read して Write する（プロジェクト固有差分は project-settings.md に集約）。ただし 3 ファイルの見出しのリポ名（`— ledger-core`）は実プロジェクト名に置換し、`commit-convention.md` の「pre-commit hook あり」の段落は検出結果に合わせる（hook 無しなら「hook が無いため、コミット前に `just lint` 等を手動実行する」に書き換える）。`${CLAUDE_PLUGIN_ROOT}` が解決できない環境では `plugins/tdd-rust/skills/_shared-tdd/{filename}` を相対 Read する。
 
 ### 5-3. 生成内容の検証
 生成した `project-settings.md` を Read し直し、テスト実行コマンドが実在するかを確認する:

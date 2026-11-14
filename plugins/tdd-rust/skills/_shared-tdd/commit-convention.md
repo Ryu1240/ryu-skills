@@ -29,7 +29,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
   )"
   ```
 - ステージングは個別 `git add <path>`。`git add .` / `-A` は使わない。
-- `--no-verify` は使わない: ledger-core は pre-commit hook（pre-commit / lefthook、または cargo-husky の precommit-hook feature） で `cargo fmt --check` と `cargo clippy -- -D warnings` が走る。hook を迂回すると、CI で初めて落ちる変更がチームに流れる。
+- `--no-verify` は使わない: ledger-core は pre-commit hook（pre-commit / lefthook、または cargo-husky の precommit-hook feature）で `cargo fmt --check` と `cargo clippy -- -D warnings` が走る。hook を迂回すると、CI で初めて落ちる変更がチームに流れる。
   - fmt / clippy でコミットがブロックされたら、`cargo fmt --all` と警告の修正で解消して再コミット（`--no-verify` で回避しない。`#[allow(clippy::...)]` で黙らせない）。
   - hook が無いリポでは、コミット前に `just lint`（または project-settings の静的解析コマンド）を手動実行する。
 - 機密情報チェック: `.env` / 認証情報 / APIキー / `DATABASE_URL` などの接続文字列 / PII を含むファイルはコミットしない（検出時は停止）。
