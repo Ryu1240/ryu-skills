@@ -27,6 +27,15 @@ TDD の Commit フェーズ。完了サイクルを Git コミットし、サイ
 `current-cycle.json` を Read。`phase=="refactor"`、`refactor_details` 非空、`implementation_files` 非空。違反なら `/tdd-refactor {id}` 案内し中断。
 `workflow-{id}.json` を Read（`task_title`, `current_cycle`, `total_cycles`, `cycle_plan`, `completed_cycles`）。
 
+## 0. 中断からの再開判定
+前回の tdd-commit がコミットの後で中断していると、`current-cycle.json` は `phase:"refactor"` のまま残る。このままコミットからやり直すとコミットするものが無く、アーカイブをやり直すと `completed_cycles` に同じサイクルが二重に入る。そこで、先にどこまで済んでいるかを判定する。
+- `completed_cycles` 末尾の `cycle_number` が `current-cycle.json` の `cycle_number` と同じ → アーカイブまで済んでいる。コミットとアーカイブは飛ばし、「current-cycle.json の削除」から続ける。
+- 上に当てはまらず、次の3つがすべて成り立つ → コミットまで済んでいる。HEAD の SHA を今サイクルのコミットとして使い、「アーカイブ」から続ける。
+  - `git status --short` に、今サイクルのファイル（`test_file_path` / `implementation_files`）の未コミット変更が無い
+  - `git log -1 --name-only` の HEAD コミットに、それらのファイルが含まれている
+  - HEAD のコミット時刻が `current-cycle.json` の `created_at` より後
+- どちらでもなければ、中断はコミット前なので通常どおり 1 から進める。一部のファイルだけコミット済みなど判定がつかないときは、状況を提示して停止する。
+
 ## 1. 変更確認
 `git branch --show-current`（命名規約違反は warning のみ）。`git status --short` / `git diff`。
 今サイクルの関連ファイルを特定（test / implementation / OpenAPI 生成物 / route / model / service / i18n の ja.yml）。

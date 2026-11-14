@@ -160,7 +160,7 @@ Write する前に、必須キーが揃い `cycle_plan` の長さが `total_cycl
 ### 4-1. 復元
 同じセッションで計画から続けている場合、計画内容は文脈にあるので読み直さなくてよい。`/tdd {workflow_id}` で再開した場合（別セッション・compact 後）は `workflow-{id}.json` を Read して必須キーを検証する。`current_cycle` で次サイクル特定。`run_mode` 取得（引数で上書き指定があれば更新保存）。`todo_task_id` で TaskGet。未完了が無ければ Phase 5 へ。
 再開したワークフローが `status:"planning_done"` のまま（`completed_cycles` が空）なら、計画が承認済みかを JSON からは判別できないので、Phase 4 に入る前に 3-4 の承認をもう一度出す。
-再開時に `current-cycle.json` が残っていれば、サイクルの途中で中断している。Red からやり直さず、その `phase` の続きから 4-2 に入る（`red` → 承認ゲート①、`green` → Evac(plan)、`refactor` → Evac(review) → 承認ゲート②）。
+再開時に `current-cycle.json` が残っていれば、サイクルの途中で中断している。Red からやり直さず、その `phase` の続きから 4-2 に入る（`red` → 承認ゲート①、`green` → Evac(plan)、`refactor` → Evac(review) → 承認ゲート②）。ただし `refactor` で、tdd-commit の「0. 中断からの再開判定」に当てはまる（コミットまで済んでいる）なら、Evac(review) と承認ゲート②は飛ばして tdd-commit から続ける（承認済みの内容はすでにコミットされている）。
 
 ### 4-2. サイクル実行（state-machine #2〜#8）
 引数は `{workflow_id}`：
