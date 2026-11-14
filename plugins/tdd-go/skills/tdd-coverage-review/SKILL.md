@@ -1,6 +1,6 @@
 ---
 name: tdd-coverage-review
-description: Test coverage review for shipment-api (Go) - analyze (handler/service × test-category) matrix and add missing test cases
+description: TDD 完了後に、対象（handler / service など）× テストカテゴリのマトリクスで Go テストの抜けを洗い出し、承認されたケースを追加する。/tdd から呼ばれるほか、「テストの網羅性を見て」と頼まれたときにも使う。
 argument-hint: <workflow_id>
 model: opus
 allowed-tools:
@@ -23,19 +23,20 @@ examples:
 
 TDD 完了後、shipment-api のテスト網羅性を「対象 × テストカテゴリ」のマトリクスで分析し、不足を追加する。
 
-## 共通契約（必ず Read）
+## 共通契約
+このセッションでまだ読んでいない（または compact 後で内容が手元にない）ときだけ Read する。`/tdd` から続けて呼ばれた場合は読み込み済み。
 - `.claude/skills/_shared-tdd/project-settings.md`（テストコマンド・レイヤー構成）/ `workflow-schema.md` / `commit-convention.md`
 
 ## 入口ゲート
-`current-cycle.json` が**存在しないこと**（サイクル進行中でない）と `completed_cycles` 非空を確認。進行中なら `/tdd-commit {id}` を案内し中断。
+`current-cycle.json` が存在しないこと（サイクル進行中でない）と `completed_cycles` 非空を確認。進行中なら `/tdd-commit {id}` を案内し中断。
 
 ## 1. コンテキスト
 `workflow-{id}.json`（`task_title`, `completed_cycles`, `patterns`, `todo_task_id`）を Read。対象テスト・実装ファイルを Read。
-実装から**公開インターフェイス**を列挙してマトリクスの行にする（handler ならエンドポイント×メソッド、service なら公開メソッド、repository なら公開クエリ、domain なら各型・検証関数）。
+実装から公開インターフェイスを列挙してマトリクスの行にする（handler ならエンドポイント×メソッド、service なら公開メソッド、repository なら公開クエリ、domain なら各型・検証関数）。
 ```bash
 go test {pkgs} -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out
 ```
-を実行し、カバレッジが低い関数を未到達分岐の手がかりにする（数値目標ではなく**抜けの発見**に使う。`-tags=integration` が要るリポでは付ける）。
+を実行し、カバレッジが低い関数を未到達分岐の手がかりにする（数値目標ではなく抜けの発見に使う。`-tags=integration` が要るリポでは付ける）。
 
 ## 2. マトリクス
 
@@ -64,19 +65,19 @@ go test {pkgs} -count=1 -coverprofile=coverage.out && go tool cover -func=covera
 
 ## 4. 追加・実行
 選択分を対応テストファイルの適切な `TestXxx` / テーブルに追加（既存は変更しない。フェイク / ファクトリも必要に応じ追加。既存の `package` 宣言・アサーションライブラリに合わせる）。
-**独立性を維持**: DB はトランザクション + `t.Cleanup(func() { _ = tx.Rollback() })`、`httptest.NewServer` は `t.Cleanup(srv.Close)`、パッケージレベル変数を書き換えない。
+独立性を維持: DB はトランザクション + `t.Cleanup(func() { _ = tx.Rollback() })`、`httptest.NewServer` は `t.Cleanup(srv.Close)`、パッケージレベル変数を書き換えない。
 ```bash
 go test {pkgs} -count=1 -race
 ```
 全件 pass を確認（既存を壊していないこと）。`gofmt -l {files}` で未フォーマットが無いことも確認。
 
 ## 5. コミット + 記録
-commit-convention に従い `test: 網羅性レビューで不足テストを追加`（**署名はバージョン無し**）でコミット（hook 準拠。`coverage.out` はコミットしない）。
+commit-convention に従い `test: 網羅性レビューで不足テストを追加`（署名はバージョン無し）でコミット（hook 準拠。`coverage.out` はコミットしない）。
 `workflow-{id}.json` に `coverage_review`（before/after/added/commit/completed_at）を記録、`updated_at` 更新。
 
 ## 6. サマリ（簡潔）
 Before/After テスト数 / カテゴリ別追加 / コミット SHA。→ 自動遷移（tdd が Optimize へ）。
 
 ## 注意
-既存テストは絶対に変更しない（追加のみ）。各テストは独立（順序非依存・単一実行可）。
-**カバレッジ数値の追求が目的ではない** — 意味のあるケースを足す（数値のためだけのテストは追加しない）。
+既存テストは変更しない（追加のみ。既存の意味を変えると網羅性の比較が成り立たない）。各テストは独立（順序非依存・単一実行可）。
+カバレッジ数値の追求が目的ではない — 意味のあるケースを足す（数値のためだけのテストは追加しない）。

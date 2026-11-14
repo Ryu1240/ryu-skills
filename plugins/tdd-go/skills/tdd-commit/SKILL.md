@@ -1,8 +1,7 @@
 ---
 name: tdd-commit
-description: Commit phase - Create git commit for the completed TDD cycle in shipment-api (pre-commit hook / golangci-lint compliant) and archive cycle state
+description: TDD の Commit フェーズ。完了したサイクルを pre-commit hook / golangci-lint に従ってコミットし、サイクル状態をアーカイブする。通常は /tdd から呼ばれる。
 argument-hint: <workflow_id>
-model: opus
 allowed-tools:
   - Read
   - Write
@@ -22,8 +21,9 @@ examples:
 
 TDD の Commit フェーズ。完了サイクルを Git コミットし、サイクル状態をアーカイブする。
 
-## 共通契約（必ず Read）
-- `.claude/skills/_shared-tdd/commit-convention.md`（**署名・メッセージ・hook 準拠・機密チェック規約**）
+## 共通契約
+このセッションでまだ読んでいない（または compact 後で内容が手元にない）ときだけ Read する。`/tdd` から続けて呼ばれた場合は読み込み済み。
+- `.claude/skills/_shared-tdd/commit-convention.md`（署名・メッセージ・hook 準拠・機密チェック規約）
 - `.claude/skills/_shared-tdd/workflow-schema.md` / `project-settings.md`
 
 ## 入口ゲート
@@ -32,21 +32,21 @@ TDD の Commit フェーズ。完了サイクルを Git コミットし、サイ
 
 ## 1. 変更確認
 `git branch --show-current`（命名規約違反は warning のみ）。`git status --short` / `git diff`。
-今サイクルの関連ファイルを特定（テスト / handler / service / repository / domain / 手書きフェイク・ファクトリ / **DB マイグレーション** / **`go generate` 生成物（sqlc の `*.sql.go`・モック）** / **`go.mod` / `go.sum`**）。
+今サイクルの関連ファイルを特定（テスト / handler / service / repository / domain / 手書きフェイク・ファクトリ / DB マイグレーション / `go generate` 生成物（sqlc の `*.sql.go`・モック） / `go.mod` / `go.sum`）。
 
 ## 2. コミットメッセージ作成
-commit-convention に従う（日本語・型プレフィックス・**署名はバージョン無し** `Co-Authored-By: Claude <noreply@anthropic.com>`）。サイクル内容を1行サマリ、必要なら詳細箇条書き（`cycle_plan` の `title` 参照）。
+commit-convention に従う（日本語・型プレフィックス・署名はバージョン無し `Co-Authored-By: Claude <noreply@anthropic.com>`）。サイクル内容を1行サマリ、必要なら詳細箇条書き（`cycle_plan` の `title` 参照）。
 
 ## 3. 事前検査（hook が無いリポでは必須）
-project-settings の CI/hook 節を確認。pre-commit hook（lefthook / pre-commit）が**無い**リポでは、コミット前に同等の検査を手動で通す：
+project-settings の CI/hook 節を確認。pre-commit hook（lefthook / pre-commit）が無いリポでは、コミット前に同等の検査を手動で通す：
 ```bash
 gofmt -l {files}                # 出力があれば未フォーマット → gofmt -w
 go vet ./... && golangci-lint run ./...   # Makefile に lint ターゲットがあれば make lint
 ```
 
 ## 4. 機密チェック → 個別ステージング
-commit-convention の機密チェック（`.env`/認証情報/APIキー/**DB 接続文字列（DSN）**/PII。検出時は停止）。
-個別 `git add <path>`（`git add .`/`-A` 禁止）。**マイグレーション・`go generate` 生成物・`go.mod`/`go.sum`**・フェイク・ファクトリも忘れず含める（`git status --short` で `??` / ` M` を再確認）。
+commit-convention の機密チェック（`.env`/認証情報/APIキー/DB 接続文字列（DSN）/PII。検出時は停止）。
+個別 `git add <path>`（`git add .`/`-A` 禁止）。マイグレーション・`go generate` 生成物・`go.mod`/`go.sum`・フェイク・ファクトリも忘れず含める（`git status --short` で `??` / ` M` を再確認）。
 
 ## 5. コミット（heredoc・hook 準拠）
 ```bash
@@ -59,25 +59,25 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 EOF
 )"
 ```
-**`--no-verify` 絶対禁止**。`git log -1 --format="%H %s"` で SHA 取得。
+`--no-verify` は使わない（→ commit-convention）。`git log -1 --format="%H %s"` で SHA 取得。
 
 ### pre-commit hook で失敗した場合（必須リカバリ）
 lefthook / pre-commit が `gofmt` / `go vet` / `golangci-lint` を走らせる。ブロックされたら：
 1. エラーを特定（未フォーマット / vet の警告 / golangci-lint のルール名）。
 2. 修正: `gofmt -w {files}` / `goimports -w {files}` / vet・lint の指摘は実装で解消（`//nolint` で黙らせない。停止条件#8）。
-3. 修正ファイルを `git add` し直して**再コミット**（`--no-verify` で回避しない）。
+3. 修正ファイルを `git add` し直して再コミット（`--no-verify` で回避しない）。
 4. 解決不能なら state-machine 停止条件#7 として状態保存し報告。
 
 ## 6. アーカイブ（workflow JSON 更新・スキーマ準拠）
 `workflow-{id}.json` を Edit（workflow-schema 準拠）: `completed_cycles` に今サイクル追記（`cycle_number`, `title`, `commit`(SHA), `test_file_path`, `test_package_dir`, `test_name`, `implementation_files`。Optimize が単一ケース実行に使う）、`current_cycle` +1、`updated_at` 更新、`status` は `in_progress`（全完了時は tdd 側 Phase6 で `done`）。
 
-## 7. current-cycle.json 削除 + 不在確認（必須）
+## 7. current-cycle.json の削除
 ```bash
 rm .claude/tdd-workflow/current-cycle.json
 ```
-削除後、Read を試みて**不在（エラー）を確認**。残っていたら再削除。（次サイクル Red 入口が不在を前提とするため。）
+次サイクルの Red はこのファイルが無いことを入口条件にしている。不在の確認は 8 の検証でまとめて行う。
 
-## 8. 検証（必須・state-machine と対応）
+## 8. 検証（state-machine の Commit 検証ゲートと対応）
 `git log -1 --format="%H"` 非空 / `completed_cycles` 末尾 `commit` == SHA・`current_cycle` == 旧+1 / `current-cycle.json` 不在。いずれか失敗なら状態保存し中断、再実行を案内。
 
 ## 9. サマリ（簡潔）
