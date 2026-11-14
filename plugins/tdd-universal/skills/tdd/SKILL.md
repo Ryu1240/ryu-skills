@@ -21,7 +21,7 @@ allowed-tools:
   - Glob
 examples:
   - input: /tdd https://www.notion.so/task-id
-    description: Plan phase from Notion task (writes workflow JSON, then stops)
+    description: Notion タスクから計画（JSON を書き出して承認を待ち、承認されたら同じセッションで Red へ進む）
   - input: /tdd "在庫チェックを在庫サービスに切り出して境界値も検証する" -- 契約テストも足す
     description: Plan phase from free-text with additional instructions
   - input: /tdd
@@ -95,7 +95,7 @@ examples:
 | `--phase=coverage-review` / `=optimize` | — | 該当フェーズのみ |
 
 ### 引数なし時の再開検出
-`Glob .claude/tdd-workflow/workflow-*.json` で `status:"in_progress"` を `updated_at` 降順に探し、あれば最新を提示して再開可否を問う（停止）。無ければ Phase 1c。
+`Glob .claude/tdd-workflow/workflow-*.json` で `status` が `"in_progress"` または `"planning_done"`（計画承認後、最初のコミット前に中断したもの）のものを `updated_at` 降順に探し、あれば最新を提示して再開可否を問う（停止）。無ければ Phase 1c。
 
 ---
 
@@ -153,7 +153,7 @@ Write する前に、必須キーが揃い `cycle_plan` の長さが `total_cycl
 📋 計画完了 — {workflow_id}（{total_cycles} サイクル, run_mode={run_mode}）
 [y] このまま Red へ / [a] 一気通貫（--auto）で進める / [e] 計画を修正 / [n] ここで終了（後で /tdd {workflow_id} で再開）
 ```
-ここで停止してユーザーの返答を待つ。`[y]` / `[a]` なら同じセッションのまま Phase 4 へ進む（計画時の分析や判断の経緯が文脈に残っているほうが Red の精度が上がるため、別セッションへの切り替えは勧めない）。`[a]` は `run_mode="auto"` を保存してから進む。`[e]` は指示を聞いて `cycle_plan` を直し、再度この承認を出す。
+ここで停止してユーザーの返答を待つ。`[y]` / `[a]` なら同じセッションのまま Phase 4 へ進む（計画時の分析や判断の経緯が文脈に残っているほうが Red の精度が上がるため、別セッションへの切り替えは勧めない）。`[a]` は `run_mode="auto"` を保存してから進む。`[e]` は指示を聞いて `cycle_plan` と `total_cycles` を直し、3-3 の検証（必須キー・`cycle_plan` の長さ == `total_cycles`）をやり直して JSON を Write し直す。TODO の項目も追加・削除・改題して同期してから、再度この承認を出す（後続の tdd-red は JSON と TODO から今サイクルの計画を読むため、文脈だけ直しても反映されない）。
 
 > 注: 計画フェーズは JSON を Write するため Plan モードでは動かない（編集ブロック）。自動承認モードで実行すること。
 
@@ -165,6 +165,7 @@ Write する前に、必須キーが揃い `cycle_plan` の長さが `total_cycl
 
 ### 4-1. 復元
 同じセッションで計画から続けている場合、計画内容は文脈にあるので読み直さなくてよい。`/tdd {workflow_id}` で再開した場合（別セッション・compact 後）は `workflow-{id}.json` を Read して必須キーを検証する。`current_cycle` で次サイクル特定。`run_mode` 取得（引数で上書き指定があれば更新保存）。`todo_task_id` で TaskGet。未完了が無ければ Phase 5 へ。
+再開時に `current-cycle.json` が残っていれば、サイクルの途中で中断している。Red からやり直さず、その `phase` の続きから 4-2 に入る（`red` → 承認ゲート①、`green` → Evac(plan)、`refactor` → Evac(review) → 承認ゲート②）。
 
 ### 4-2. サイクル実行（state-machine #2〜#8）
 引数は `{workflow_id}`：

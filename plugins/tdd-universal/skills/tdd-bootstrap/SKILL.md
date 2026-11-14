@@ -171,12 +171,12 @@ examples:
 ### 5-1. `project-settings.md`
 plugin 同梱テンプレ（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/project-settings.md`）を Read し、すべての `{{...}}` を確定値で置換して Write。
 - `{{` を1つも残さない（残っていると `/tdd` の Phase 0 が未 bootstrap と判定して止まる）。
-- 「無い」ものは削除ではなく 「未導入」「未対応」「なし」と明記する（後から `/tdd-project-settings-update` で追記しやすい）。
+- 「無い」ものは削除ではなく「未導入」「未対応」「なし」と明記する（後から `/tdd-project-settings-update` で追記しやすい）。
 - `{{LANGUAGE_IDIOMS}}` / `{{ISOLATION_STRATEGY}}` はヒアリング結果を箇条書きで。空にしない（何も無ければ「特になし（既存テストの慣習を踏襲する）」と書く）。
 - `{{EXTRA_INVARIANTS}}` が空なら、不変条件の 8 番目の項目行を削除する。
 
 ### 5-2. `commit-convention.md` / `workflow-schema.md` / `state-machine.md`
-plugin 同梱の テンプレ（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/{filename}`）を Read して Write する（プロジェクト固有差分は project-settings.md に集約）。ただし 3 ファイルの見出しの `— 汎用` は実プロジェクト名に置換する（hook や CI の有無は `commit-convention.md` が project-settings の `{{PRECOMMIT}}` / `{{CI}}` を参照する形になっているので、そのままでよい）。`${CLAUDE_PLUGIN_ROOT}` が解決できない環境では `plugins/tdd-universal/skills/_shared-tdd/{filename}` を相対 Read する。
+plugin 同梱のテンプレ（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/{filename}`）を Read して Write する（プロジェクト固有差分は project-settings.md に集約）。ただし 3 ファイルの見出しの `— 汎用` は実プロジェクト名に置換する（hook や CI の有無は `commit-convention.md` が project-settings の `{{PRECOMMIT}}` / `{{CI}}` を参照する形になっているので、そのままでよい）。`${CLAUDE_PLUGIN_ROOT}` が解決できない環境では `plugins/tdd-universal/skills/_shared-tdd/{filename}` を相対 Read する。
 
 ### 5-3. 生成内容の検証
 生成した `project-settings.md` を Read し直し、`{{` が残っていないことと、単一ケース/単一ファイル実行コマンドが実在することを確認する。残っていれば埋めてから完了とする。
