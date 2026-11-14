@@ -22,7 +22,7 @@ examples:
 taskcli のテスト群の「**担保内容の重複**」を **Coverage 精密モード**で検知し、削除/統合候補をユーザー承認のうえ適用する。
 （旧版の AST / Mutation モードは廃止。AST は過剰検出で実用に耐えず、Mutation は数十分〜時間かかり単発運用専用だったため、**日常運用に適した Coverage 一本**に絞った。）
 
-> このスキルは承認後にファイルを編集する（`model: opus` で Edit 可能）。
+> このスキルは承認後にファイルを編集する（`agent: Explore` を付けない — Explore は Write/Edit を持たず、承認後の適用が空振りする）。
 > **tdd-optimize との違い**: optimize=構文重複（同型 test を parametrize 集約）、本スキル=**セマンティック重複**（命名が違っても line+branch カバレッジ集合が同じ＝実質同じ担保）。両方使うなら **coverage-overlap が先**（削除してから集約）。
 
 ## 共通契約（必ず Read）
