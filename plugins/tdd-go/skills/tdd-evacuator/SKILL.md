@@ -4,6 +4,7 @@ description: Green 後・Refactor 後・サイクル境界で、リファクタ�
 argument-hint: <workflow_id> --mode=plan|review|boundary
 context: fork
 agent: Explore
+model: opus
 background: false
 allowed-tools:
   - Read
