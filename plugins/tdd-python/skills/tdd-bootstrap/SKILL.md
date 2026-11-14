@@ -94,7 +94,7 @@ Python プロジェクトを走査し、`.claude/skills/_shared-tdd/` 配下に 
 
 ### 4-1. `project-settings.md`
 
-下記テンプレを、Step 2 の検出結果で埋めて Write。「検出: なし」だった項目は対応行を 削除 するか「未導入」と明記する（推測で「あり」と書かない）。
+下記テンプレを、Step 2 の検出結果で埋めて Write。「検出: なし」だった項目は対応行を削除するか「未導入」と明記する（推測で「あり」と書かない）。
 
 ```markdown
 # TDD スキル共通設定（Project Settings）— {package_name}
@@ -162,7 +162,7 @@ Python プロジェクトを走査し、`.claude/skills/_shared-tdd/` 配下に 
 
 ### 4-2. `commit-convention.md` / `workflow-schema.md` / `state-machine.md`
 
-plugin 同梱の テンプレ（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/{filename}`）を Read して Write する（プロジェクト固有差分は project-settings.md に集約。taskcli のテンプレはリポ名や hook 前提を含まないので置換不要）。`${CLAUDE_PLUGIN_ROOT}` が解決できない環境では、`plugins/tdd-python/skills/_shared-tdd/{filename}` を相対 Read する。
+plugin 同梱のテンプレ（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/{filename}`）を Read して Write する（プロジェクト固有差分は project-settings.md に集約。taskcli のテンプレはリポ名や hook 前提を含まないので置換不要）。`${CLAUDE_PLUGIN_ROOT}` が解決できない環境では、`plugins/tdd-python/skills/_shared-tdd/{filename}` を相対 Read する。
 
 ## Step 5: ワークフロー状態の git 追跡設定（確認）
 

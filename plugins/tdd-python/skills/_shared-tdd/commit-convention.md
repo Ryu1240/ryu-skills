@@ -45,7 +45,7 @@ feat(task-schemas): Task を追加し roundtrip 契約をピン留め
   ```
 - ステージングは個別 `git add <path>`。`git add .` / `git add -A` は使わない（意図しないファイル混入防止）。
 - `--no-verify` は使わない（将来 hook が入っても習慣的にバイパスしないため）。
-- 機密情報チェック: `.env` / 認証情報 / APIキー / PII / S3 鍵 / 個人特定可能パス を含むファイルはコミットしない（検出時は停止）。
+- 機密情報チェック: `.env` / 認証情報 / APIキー / PII / S3 鍵 / 個人特定可能パスを含むファイルはコミットしない（検出時は停止）。
 - コミット後 `git log -1 --format="%H %s"` で SHA とサマリーを取得し、`completed_cycles` に記録（→ `workflow-schema.md`）。
 
 ## ブランチ

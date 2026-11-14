@@ -51,7 +51,7 @@ Coverage モードは pytest-cov に依存する。未導入のままでは動�
 2. ベースライン: `cd taskcli && docker compose run --rm app pytest -v {test_files の rel パス}` 全 pass を確認（失敗なら修正後に再実行を案内し中断）。passed数 / 実行時間 / 各ファイル行数を記録。
 
 ## SP2: Collection（coverage コンテキスト取得）
-> docker-compose は `.:/app`（taskcli/ ↔ /app）を双方向マウントするので、コンテナ内生成物は ホストの `taskcli/` 直下に現れる。パスはそれ前提。
+> docker-compose は `.:/app`（taskcli/ ↔ /app）を双方向マウントするので、コンテナ内生成物はホストの `taskcli/` 直下に現れる。パスはそれ前提。
 
 ```bash
 cd taskcli && docker compose run --rm app sh -c "\
@@ -84,7 +84,7 @@ cd taskcli && docker compose run --rm app sh -c "\
 2. 再実行で全 pass。
 3. 担保維持の検証（必須）: 削除後に再度 coverage を取り、line+branch 和集合が減っていないことを確認。減っていたら該当ステップを Edit でロールバック（その削除は誤判定）。
 4. 残テスト3件を個別実行で独立性確認。
-5. レポートを リポジトリルート直下の `.claude/tdd-workflow/overlap-report-{workflow_id}-{date}.md` に Write（メトリクス表・適用アクション・担保保証検証・残レビュー項目）。CWD が taskcli/ でも配下に書かない（絶対パスを使うと取り違えない）。
+5. レポートをリポジトリルート直下の `.claude/tdd-workflow/overlap-report-{workflow_id}-{date}.md` に Write（メトリクス表・適用アクション・担保保証検証・残レビュー項目）。CWD が taskcli/ でも配下に書かない（絶対パスを使うと取り違えない）。
 
 ## 原則
 - スコープを守る（`test_files` 外を対象にしない）。
