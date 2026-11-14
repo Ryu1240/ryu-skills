@@ -1,6 +1,6 @@
 ---
 name: tdd-refactor
-description: Refactor phase - Improve order-api code quality (layer hygiene / N+1 queries / DI / error types / async pitfalls) while keeping Vitest green
+description: TDD の Refactor フェーズ。テストを緑に保ったまま、レイヤーの依存方向・N+1・非同期の落とし穴・エラークラス・型の健全性を改善する。通常は /tdd から呼ばれる。
 argument-hint: <workflow_id>
 model: opus
 allowed-tools:
@@ -19,12 +19,13 @@ examples:
     description: Execute Refactor phase for the current cycle
 ---
 
-TDD の Refactor フェーズ。**動作を変えずに**コード品質を改善し、テストが引き続き pass することを確認する。
+TDD の Refactor フェーズ。動作を変えずにコード品質を改善し、テストが引き続き pass することを確認する。
 
-## 共通契約（必ず Read）
+## 共通契約
+このセッションでまだ読んでいない（または compact 後で内容が手元にない）ときだけ Read する。`/tdd` から続けて呼ばれた場合は読み込み済み。
 - `.claude/skills/_shared-tdd/project-settings.md`（lint・レイヤー構成）/ `workflow-schema.md` / `state-machine.md`
 
-> 原則: ✅内部改善 ❌新機能 ❌動作変更 ❌**新規テスト追加**（次サイクルの Red で）。
+> 原則: ✅内部改善 ❌新機能 ❌動作変更 ❌新規テスト追加（次サイクルの Red で）。
 
 ## 入口ゲート
 `current-cycle.json` を Read。`phase=="green"`、`implementation_files` 非空、`updated_at` 非空。違反なら `/tdd-green {id}` 案内し中断。
@@ -35,7 +36,7 @@ TDD の Refactor フェーズ。**動作を変えずに**コード品質を改�
 ## 2. 改善（該当時のみ・Node/TS バックエンド固有）
 
 ### 2-1. レイヤー衛生（最優先）
-- **依存方向の逆流**を解消: service が `req`/`res` を受け取っていないか、route にビジネスロジックが漏れていないか、repository 以外に ORM 呼び出しが無いか（Grep で確認）。
+- 依存方向の逆流を解消: service が `req`/`res` を受け取っていないか、route にビジネスロジックが漏れていないか、repository 以外に ORM 呼び出しが無いか（Grep で確認）。
 - 見つかった場合は正しい層へ移動する（テストが緑のまま動くこと）。
 
 ### 2-2. N+1 クエリ（必須確認）
@@ -44,11 +45,11 @@ TDD の Refactor フェーズ。**動作を変えずに**コード品質を改�
 for (const id of ids) { await repo.findById(id) }   // ❌ N+1
 const rows = await repo.findByIds(ids)              // ✅ 一括取得
 ```
-ORM の関連取得（Prisma の `include`、Drizzle の join、TypeORM の `relations`）でまとめる。**ループ内 await はレビュー対象**。
+ORM の関連取得（Prisma の `include`、Drizzle の join、TypeORM の `relations`）でまとめる。ループ内 await はレビュー対象。
 
 ### 2-3. 非同期の落とし穴
-- **`await` 漏れ**: Promise を返す関数の呼び出しに `await`/`return` が無い箇所（浮いた Promise は例外を握り潰す）。
-- **`Promise.all` 化**: 独立した非同期処理が直列に `await` されていれば並列化（**順序依存・DB トランザクション内は除く**）。
+- `await` 漏れ: Promise を返す関数の呼び出しに `await`/`return` が無い箇所（浮いた Promise は例外を握り潰す）。
+- `Promise.all` 化: 独立した非同期処理が直列に `await` されていれば並列化（順序依存・DB トランザクション内は除く）。
 - `forEach` 内の `async` は待たれない → `for...of` + `await` か `Promise.all(map)` に。
 
 ### 2-4. エラー処理の一貫性
@@ -78,11 +79,10 @@ yarn vitest run {test_file_path}
 
 ## 4. 状態更新
 `current-cycle.json` を Edit: `phase:"refactor"`, `refactor_details`（`layer_fixes` / `n_plus_one` / `async_fixes` / `error_handling` / `type_safety` / `decomposition` / `naming` / `linter`。空オブジェクト不可。何もなければ `{"note":"no refactor needed"}`）, `updated_at`。
-**自己検証**: `phase=="refactor"` かつ `refactor_details` 非空を Read で確認。
 
 ## 5. サマリ（簡潔）
 実施した改善（レイヤー/N+1/非同期/エラー/型/命名/lint 件数）/ 全件 pass / 次は Evac(review)→Commit。→ 自動遷移（承認ゲート②は tdd 側）。
 
 ## 注意
-- **振る舞いを変える改善は Refactor ではない**。仕様変更に踏み込む必要が見えたら停止条件#2（設計判断）として報告する。
-- **レイヤー構成そのものの変更**（新しい層の追加、依存の向きの変更）はスコープ外。提案として報告し別タスクに分ける。
+- 振る舞いを変える改善は Refactor ではない。仕様変更に踏み込む必要が見えたら停止条件#2（設計判断）として報告する。
+- レイヤー構成そのものの変更（新しい層の追加、依存の向きの変更）はスコープ外。提案として報告し別タスクに分ける。
