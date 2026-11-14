@@ -14,6 +14,7 @@ Claude Code 向け **TDD ワークフロー自動化スキル**の plugin マー
 | **`tdd-rust`** | Rust（`cargo test` + axum + sqlx。ワークスペース対応） | `/tdd …` | [`plugins/tdd-rust/`](plugins/tdd-rust/) |
 | **`tdd-monorepo`** | Rails backend + Vue frontend のモノレポ（エコシステム自動判定） | `/tdd …` | [`plugins/tdd-monorepo/`](plugins/tdd-monorepo/) |
 | **`tdd-universal`** | **上記以外のあらゆる言語**（Java / Kotlin / PHP / C# / Elixir / Swift …）。対話型 bootstrap で設定を構築 | `/tdd …` | [`plugins/tdd-universal/`](plugins/tdd-universal/) |
+| **`pr-tour`** | 言語非依存。**PR をエントリーポイントから実行順にツアー形式で解説**（TDD ではありません） | `/pr-tour …` | [`plugins/pr-tour/`](plugins/pr-tour/) |
 
 > 専用 plugin（`tdd-universal` 以外）の skill はプロジェクト固有の前提を `skills/_shared-tdd/project-settings.md` に集約しています。サンプルとして架空リポジトリ **`sales-hub`**（Rails）/ **`taskcli`**（Python）/ **`storefront`**（フロントエンド）/ **`order-api`**（Node バックエンド）/ **`shipment-api`**（Go）/ **`ledger-core`**（Rust）/ **`retail-hub`**（モノレポ）を題材に記述してあるので、自分のプロジェクトに合わせて `project-settings.md` を書き換えて使ってください（`tdd-bootstrap` が自動生成します）。
 >
@@ -36,6 +37,7 @@ Claude Code の plugin マーケットプレイスとして登録し、使いた
 /plugin install tdd-rust@general-skills       # Rust 用
 /plugin install tdd-monorepo@general-skills   # Rails+Vue モノレポ用
 /plugin install tdd-universal@general-skills  # それ以外のあらゆる言語用
+/plugin install pr-tour@general-skills        # PR をツアー形式で解説（TDD とは独立。併用可）
 ```
 
 各 plugin は同じ skill 名（`/tdd`, `/tdd-red`, `/tdd-green`, …）を提供します。**プロジェクトごとに 1 つだけを `.claude/settings.json` で有効化するのが推奨運用**です。選び方:
@@ -188,6 +190,17 @@ Rails/RSpec backend + Vue/Vitest frontend の**モノレポ**向け。1 スキ�
 - **[tdd-coverage-review](plugins/tdd-universal/skills/tdd-coverage-review/SKILL.md)** — 公開インターフェイス × カテゴリ（境界値/空/異常系/外部依存失敗/認可/契約/冪等性）で不足を補完。
 - **[tdd-optimize](plugins/tdd-universal/skills/tdd-optimize/SKILL.md)** — テスト最適化（セットアップ巻き上げ・パラメータ化・アサーション集約）。検証できなかった項目は明記。
 - **[tdd-workflow-update](plugins/tdd-universal/skills/tdd-workflow-update/SKILL.md)** — 進行中ワークフロー JSON を自然言語で動的更新。
+
+### `pr-tour`（`/pr-tour`）
+
+TDD 系とは独立した、**PR を理解するための**スキルです（skill 名が衝突しないので TDD 系プラグインと同時に有効化できます）。差分の外にある起点（ルーティング・画面・cron・ジョブの起動元）を探し、起点から差分を貫く案内プランを Markdown と視覚ビューで保存・公開してから、1 ターン 1 ステップで「見る場所 / ここは何をしている場所か / 変更点 / なぜ / 対応するテスト / 次へのつながり」を解説します。詳細は [`plugins/pr-tour/README.md`](plugins/pr-tour/README.md) を参照。
+
+> [!WARNING]
+> 公式マーケットプレースの **`code-review` プラグイン（別物）** は PR に `gh pr comment` で公開コメントを投稿します。pr-tour はレビュー結果を手元に返す effort 付きの `code-review` スキルを併走させる前提で、判別できないときは起動しませんが、公式プラグインを入れている環境ではツアー前に無効化を推奨します。
+
+- **[pr-tour](plugins/pr-tour/skills/pr-tour/SKILL.md)** — 本体。対象の解決 → 全体把握 → 起点の探索 → テスト対応 → プラン承認 → 1 ステップずつ解説 → 完了。effort 付き `code-review` があればバックグラウンドで並走させ、指摘を該当ステップに添える。
+- **[references/](plugins/pr-tour/skills/pr-tour/references/)** — 起点の辿り方、プランの書式、code-review の並走、テストの実測、保存先、レビューコメント下書き。
+- **[scripts/](plugins/pr-tour/skills/pr-tour/scripts/)** — base/head の fetch と変更ファイルのレイヤー分類、プランと視覚ビューの同時更新、図解用 SVG ヘルパー。
 
 ## 設計のポイント
 

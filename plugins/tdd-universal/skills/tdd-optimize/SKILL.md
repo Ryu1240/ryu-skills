@@ -19,7 +19,7 @@ examples:
 
 TDD 完了後のテスト最適化。**テストの独立性を保ったまま**、重複セットアップ・冗長アサーション・類似ケースを集約し、実行速度と可読性を上げる。
 
-> このスキルは承認後にファイルを編集する（`model: opus` で Edit 可能）。
+> このスキルは承認後にファイルを編集する（`agent: Explore` を付けない — Explore は Write/Edit を持たず、承認後の適用が空振りする）。
 
 ## 共通契約（必ず Read）
 - `.claude/skills/_shared-tdd/project-settings.md`（**テスト実行コマンド**・**独立性の担保方法**・言語固有の慣習）/ `state-machine.md`
