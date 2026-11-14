@@ -91,7 +91,7 @@ sales-hub に対して、完全な TDD ワークフロー（Plan → Red→Green
 | `--phase=coverage-review` / `=optimize` | — | 該当フェーズのみ |
 
 ### 引数なし時の再開検出
-`Glob .claude/tdd-workflow/workflow-*.json` で `status` が `"in_progress"` または `"planning_done"`（計画承認後、最初のコミット前に中断したもの）のものを `updated_at` 降順に探し、あれば最新を提示して再開可否を問う（停止）。無ければ Phase 1c。
+`Glob .claude/tdd-workflow/workflow-*.json` で `status` が `"in_progress"` または `"planning_done"`（最初のコミット前に中断したもの。計画の承認前に中断したものも含む）のものを `updated_at` 降順に探し、あれば最新を提示して再開可否を問う（停止）。無ければ Phase 1c。
 
 ---
 
@@ -153,6 +153,7 @@ Write する前に、必須キーが揃い `cycle_plan` の長さが `total_cycl
 
 ### 4-1. 復元
 同じセッションで計画から続けている場合、計画内容は文脈にあるので読み直さなくてよい。`/tdd {workflow_id}` で再開した場合（別セッション・compact 後）は `workflow-{id}.json` を Read して必須キーを検証する。`current_cycle` で次サイクル特定。`run_mode` 取得（引数で上書き指定があれば更新保存）。`todo_task_id` で TaskGet。未完了が無ければ Phase 5 へ。
+再開したワークフローが `status:"planning_done"` のまま（`completed_cycles` が空）なら、計画が承認済みかを JSON からは判別できないので、Phase 4 に入る前に 3-4 の承認をもう一度出す。
 再開時に `current-cycle.json` が残っていれば、サイクルの途中で中断している。Red からやり直さず、その `phase` の続きから 4-2 に入る（`red` → 承認ゲート①、`green` → Evac(plan)、`refactor` → Evac(review) → 承認ゲート②）。
 
 ### 4-2. サイクル実行（state-machine #2〜#8）
