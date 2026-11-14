@@ -1,6 +1,6 @@
 ---
 name: tdd-coverage-review
-description: Test coverage review for sales-hub - analyze (endpoint/model × test-category) matrix and add missing test cases
+description: TDD 完了後に、対象（endpoint / model など）× テストカテゴリのマトリクスで RSpec テストの抜けを洗い出し、承認されたケースを追加する。/tdd から呼ばれるほか、「テストの網羅性を見て」と頼まれたときにも使う。
 argument-hint: <workflow_id>
 model: opus
 allowed-tools:
@@ -21,11 +21,12 @@ examples:
 
 TDD 完了後、sales-hub のテスト網羅性を「対象 × テストカテゴリ」のマトリクスで分析し、不足を追加する。
 
-## 共通契約（必ず Read）
+## 共通契約
+このセッションでまだ読んでいない（または compact 後で内容が手元にない）ときだけ Read する。`/tdd` から続けて呼ばれた場合は読み込み済み。
 - `.claude/skills/_shared-tdd/project-settings.md`（テストコマンド）/ `workflow-schema.md` / `commit-convention.md`
 
 ## 入口ゲート
-`current-cycle.json` が**存在しないこと**（サイクル進行中でない）と `completed_cycles` 非空を確認。進行中なら `/tdd-commit {id}` を案内し中断。
+`current-cycle.json` が存在しないこと（サイクル進行中でない）と `completed_cycles` 非空を確認。進行中なら `/tdd-commit {id}` を案内し中断。
 
 ## 1. コンテキスト
 `workflow-{id}.json`（`task_title`, `completed_cycles`, `todo_task_id`）を Read。対象テスト・実装ファイルを Read。
@@ -37,7 +38,7 @@ TDD 完了後、sales-hub のテスト網羅性を「対象 × テストカテ�
 |---|---|
 | 正常系: ステータスコード | 必須 |
 | 正常系: OpenAPI スキーマ（`assert_response_schema_confirm`） | 必須 |
-| 正常系: **テナント分離**（現テナントのデータのみ） | 必須 |
+| 正常系: テナント分離（現テナントのデータのみ） | 必須 |
 | 正常系: レスポンスボディ / 空結果 / 関連データ | 推奨/条件付き |
 | 異常系: 404（存在しない） / 422（バリデーション） / 重複 | 必須/条件付き |
 | 権限: Pundit 拒否 / 未認証 401 | 該当時必須 |
@@ -57,11 +58,11 @@ TDD 完了後、sales-hub のテスト網羅性を「対象 × テストカテ�
 全件 pass を確認（既存を壊していないこと）。
 
 ## 5. コミット + 記録
-commit-convention に従い `test: 網羅性レビューで不足テストを追加`（**署名はバージョン無し**）でコミット（hook 準拠）。
+commit-convention に従い `test: 網羅性レビューで不足テストを追加`（署名はバージョン無し）でコミット（hook 準拠）。
 `workflow-{id}.json` に `coverage_review`（before/after/added/commit/completed_at）を記録、`updated_at` 更新。
 
 ## 6. サマリ（簡潔）
 Before/After テスト数 / カテゴリ別追加 / コミット SHA。→ 自動遷移（tdd が Optimize へ）。
 
 ## 注意
-既存テストは絶対に変更しない（追加のみ）。各テストは独立（順序非依存・個別実行可）。
+既存テストは変更しない（追加のみ。既存の意味を変えると網羅性の比較が成り立たない）。各テストは独立（順序非依存・個別実行可）。

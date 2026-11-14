@@ -1,6 +1,6 @@
 ---
 name: tdd-bootstrap
-description: Detect the Rails project's stack/paths/tooling and generate a project-specific .claude/skills/_shared-tdd/ for the tdd-rails skills
+description: Rails プロジェクトのスタック・spec 配置・ツール（RSpec / FactoryBot / Committee / マルチテナント / hook / CI）を走査し、tdd-rails 用の .claude/skills/_shared-tdd/ を生成する（承認制）。/tdd の初回起動時に自動で呼ばれるほか、「TDD の設定を作り直して」と頼まれたときに使う。
 argument-hint: [--force]
 model: opus
 allowed-tools:
@@ -31,7 +31,7 @@ Rails プロジェクトを走査し、`.claude/skills/_shared-tdd/` 配下に p
 `.claude/skills/_shared-tdd/project-settings.md` を Read：
 
 - 存在しない → そのまま Step 2 へ
-- 存在し、`--force` なし → 「既に存在します。再生成しますか？ [o]上書き / [n]中断」を確認（**停止**）
+- 存在し、`--force` なし → 「既に存在します。再生成しますか？ [o]上書き / [n]中断」を確認（停止）
 - 存在し、`--force` あり → そのまま Step 2 へ（上書き）
 
 ## Step 2: プロジェクト走査
@@ -89,7 +89,7 @@ Rails プロジェクトを走査し、`.claude/skills/_shared-tdd/` 配下に p
 - `[e]` → 「どの項目を変更しますか？」を聞き、自由入力で上書き。再度 `[y]/[e]/[n]` 確認。
 - `[n]` → 中断（何も生成しない）
 
-承認なしに Write してはいけない（**停止**）。
+承認を得るまで Write しない（停止）。
 
 ## Step 4: ファイル生成
 
@@ -97,7 +97,7 @@ Rails プロジェクトを走査し、`.claude/skills/_shared-tdd/` 配下に p
 
 ### 4-1. `project-settings.md`
 
-下記テンプレを、Step 2 の検出結果で埋めて Write。「検出: なし」だった項目は対応行を **削除** するか「未導入」と明記する（推測で「あり」と書かない）。
+下記テンプレを、Step 2 の検出結果で埋めて Write。「検出: なし」だった項目は対応行を削除するか「未導入」と明記する（推測で「あり」と書かない）。
 
 ```markdown
 # TDD スキル共通設定（Project Settings）— {app_name}
@@ -118,29 +118,29 @@ Rails プロジェクトを走査し、`.claude/skills/_shared-tdd/` 配下に p
 
 ## テスト実行コマンド
 
-**backend（Rails / RSpec）**:
+backend（Rails / RSpec）:
 ```bash
 bundle exec rspec spec/path/to/foo_spec.rb           # 単一ファイル
 bundle exec rspec spec/path/to/foo_spec.rb:42        # 行指定
 {docker compose あれば: docker compose exec app bundle exec rspec spec/path/to/foo_spec.rb}
 ```
 
-## CI / hook（重要）
+## CI / hook
 
 - {CI 検出結果: 「CircleCI がテストを走らせる」/ 「GitHub Actions がテストを走らせる」/ 「CI 未設定」}。
-- {husky 検出時: 「pre-commit hook あり（husky + lint-staged）。`--no-verify` は禁止」/ 無ければ削除}
+- {husky 検出時: 「pre-commit hook あり（husky + lint-staged）。`--no-verify` は使わない」/ 無ければ削除}
 - lint: {Rubocop あれば「Rubocop（`.rubocop.yml`）」/ なければ「未導入」}
 
 ## 不変条件（全スキル共通・破ってはいけない線）
 
-1. **1サイクル = 1テスト = 1コミット**。
-2. **TDD メタ情報をコード/spec に残さない**。
-3. {マルチテナント検出時のみ: **multi-tenant scope を必ず張る**: モデル/サービスは `ApplicationRecord.client = client`（または `ActsAsTenant.with_tenant(client)`）でテナント文脈を設定。クエリは tenant scoped に。}
-4. **RSpec の慣習を踏襲**: 明示的な `subject` 宣言は避ける（implicit subject）。{FactoryBot 検出時のみ: factory は適切にテナント等を渡す。}
-5. {Committee 検出時のみ: **request spec は OpenAPI 契約を検証**: `assert_response_schema_confirm(200)` で response schema を担保。}
-6. **Green は最小実装のみ**（YAGNI）。
-7. **承認ゲートは Red 完了後と Commit 直前の2箇所**。
-8. **ターン粒度**: 既定は各フェーズで停止。一気通貫は `--auto` でのみ。→ `state-machine.md` 参照。
+1. 1サイクル = 1テスト = 1コミット。
+2. TDD メタ情報をコード/spec に残さない。
+3. {マルチテナント検出時のみ: multi-tenant scope を張る（不変条件の中で最も優先する）: モデル/サービスは `ApplicationRecord.client = client`（または `ActsAsTenant.with_tenant(client)`）でテナント文脈を設定。クエリは tenant scoped に。}
+4. RSpec の慣習を踏襲: 明示的な `subject` 宣言は避ける（implicit subject）。{FactoryBot 検出時のみ: factory は適切にテナント等を渡す。}
+5. {Committee 検出時のみ: request spec は OpenAPI 契約を検証: `assert_response_schema_confirm(200)` で response schema を担保。}
+6. Green は最小実装のみ（YAGNI）。
+7. 承認ゲートは Red 完了後と Commit 直前の2箇所。
+8. ターン粒度: 既定は各フェーズで停止。一気通貫は `--auto` でのみ。→ `state-machine.md` 参照。
 
 ## ブランチ / コミット
 
@@ -151,39 +151,39 @@ bundle exec rspec spec/path/to/foo_spec.rb:42        # 行指定
 
 ### 4-2. `commit-convention.md` / `workflow-schema.md` / `state-machine.md`
 
-plugin 同梱の **テンプレ**（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/{filename}`）を Read して Write する（プロジェクト固有差分は project-settings.md に集約）。ただし **3 ファイルの見出しのリポ名**（`— sales-hub`）は実プロジェクト名に置換し、`commit-convention.md` の「husky + lint-staged の pre-commit hook あり」の段落は検出結果に合わせる（hook 無しなら「hook が無いため、コミット前に lint / format を手動実行する」に書き換える）。`${CLAUDE_PLUGIN_ROOT}` が解決できない環境では、`plugins/tdd-rails/skills/_shared-tdd/{filename}` を相対 Read する。
+plugin 同梱のテンプレ（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/{filename}`）を Read して Write する（プロジェクト固有差分は project-settings.md に集約）。ただし 3 ファイルの見出しのリポ名（`— sales-hub`）は実プロジェクト名に置換し、`commit-convention.md` の「husky + lint-staged の pre-commit hook あり」の段落は検出結果に合わせる（hook 無しなら「hook が無いため、コミット前に lint / format を手動実行する」に書き換える）。`${CLAUDE_PLUGIN_ROOT}` が解決できない環境では、`plugins/tdd-rails/skills/_shared-tdd/{filename}` を相対 Read する。
 
 ## Step 5: ワークフロー状態の git 追跡設定（確認）
 
-`/tdd` は実行中に `.claude/tdd-workflow/` へ状態ファイルを書き出す（`workflow-{id}.json` / `current-cycle.json` / `notion-context-*.json` / `optimization-report-*.md`）。これらは**開発者ごとの進行中の作業状態**であり、コミットするとレビューのノイズや複数人作業時のコンフリクトの原因になる。Notion 連携を使う場合はタスク本文のキャッシュも含まれる。
+`/tdd` は実行中に `.claude/tdd-workflow/` へ状態ファイルを書き出す（`workflow-{id}.json` / `current-cycle.json` / `notion-context-*.json` / `optimization-report-*.md`）。これらは開発者ごとの進行中の作業状態であり、コミットするとレビューのノイズや複数人作業時のコンフリクトの原因になる。Notion 連携を使う場合はタスク本文のキャッシュも含まれる。
 
 ### 5-1. 現状確認
 ```bash
 git check-ignore -q .claude/tdd-workflow/
 ```
 終了コードで判定する（`echo` を繋がない。128 を「未無視」と誤認しないため）:
-- **0（既に無視されている）** → 何もせず次へ（サマリで「設定済み」と報告）。
-- **1（無視されていない）** → 5-2 へ。
-- **128（git 管理下でない）** → このステップをスキップ。
+- 0（既に無視されている） → 何もせず次へ（サマリで「設定済み」と報告）。
+- 1（無視されていない） → 5-2 へ。
+- 128（git 管理下でない） → このステップをスキップ。
 
 ### 5-2. ユーザーに確認（AskUserQuestion・必須）
 「TDD ワークフローの状態ファイルを git 管理から除外しますか？」として次を提示する:
 
-- **`.gitignore` に追加（推奨）** — チーム全員に効く。`.gitignore` の変更自体はコミット対象になる。
-- **`.git/info/exclude` に追加** — このクローンのみ。`.gitignore` を変更したくない場合に。他メンバーには効かない。
-- **除外しない** — ワークフローの計画・進捗をチームで共有・レビューしたい場合。
+- `.gitignore` に追加（推奨） — チーム全員に効く。`.gitignore` の変更自体はコミット対象になる。
+- `.git/info/exclude` に追加 — このクローンのみ。`.gitignore` を変更したくない場合に。他メンバーには効かない。
+- 除外しない — ワークフローの計画・進捗をチームで共有・レビューしたい場合。
 
 ### 5-3. 適用（承認された選択のみ）
-対象ファイル（`.gitignore` または `.git/info/exclude`）を Read し、**同じ行が既にあれば何もしない**。無ければ末尾に追記して Write する:
+対象ファイル（`.gitignore` または `.git/info/exclude`）を Read し、同じ行が既にあれば何もしない。無ければ末尾に追記して Write する:
 
 ```
 # TDD ワークフローの進行状態（開発者ごとの一時ファイル）
 .claude/tdd-workflow/
 ```
 
-追記後に `git check-ignore -q .claude/tdd-workflow/` を再実行し、**実際に効いていることを確認**する。効いていなければ原因（別の否定パターン等）を提示する。
+追記後に `git check-ignore -q .claude/tdd-workflow/` を再実行し、実際に効いていることを確認する。効いていなければ原因（別の否定パターン等）を提示する。
 
-> ⚠️ `.claude/skills/_shared-tdd/` は**チームで共有すべき設定**なので絶対に ignore しない。このステップの対象は `.claude/tdd-workflow/` のみ。
+> ⚠️ `.claude/skills/_shared-tdd/` はチームで共有すべき設定なので ignore しない。このステップの対象は `.claude/tdd-workflow/` のみ。
 
 ## Step 6: サマリ提示
 
@@ -199,10 +199,10 @@ git check-ignore -q .claude/tdd-workflow/
 2. /tdd "<タスク>" で TDD ワークフロー開始
 ```
 
-> サマリには**ワークフロー状態の git 追跡設定の結果**（`.gitignore` に追加 / `.git/info/exclude` に追加 / 除外しない / 既に設定済み）を 1 行含める。
+> サマリにはワークフロー状態の git 追跡設定の結果（`.gitignore` に追加 / `.git/info/exclude` に追加 / 除外しない / 既に設定済み）を 1 行含める。
 
 ## エラーハンドリング
 
-- `Gemfile` が存在しない → 「ここは Rails プロジェクトではないようです。中断します」と提示して終了。あわせて**汎用版 `tdd-universal` plugin**（任意の言語向け。対話型 bootstrap でスタックを聞き取って設定を構築）の利用を案内する。
+- `Gemfile` が存在しない → 「ここは Rails プロジェクトではないようです。中断します」と提示して終了。あわせて汎用版 `tdd-universal` plugin（任意の言語向け。対話型 bootstrap でスタックを聞き取って設定を構築）の利用を案内する。
 - 検出が極端に乏しい（spec/ 不在、Gemfile に RSpec 無し）→ 警告のみ出し、最小限の project-settings.md を生成（ユーザーが手動で埋める前提）。
-- 既存 `.claude/skills/_shared-tdd/` がある状態で `--force` 未指定 → 承認なしに上書きしてはいけない。
+- 既存 `.claude/skills/_shared-tdd/` がある状態で `--force` 未指定 → 承認なしに上書きしない。
