@@ -97,7 +97,7 @@ Rails プロジェクトを走査し、`.claude/skills/_shared-tdd/` 配下に p
 
 ### 4-1. `project-settings.md`
 
-下記テンプレを、Step 2 の検出結果で埋めて Write。「検出: なし」だった項目は対応行を 削除 するか「未導入」と明記する（推測で「あり」と書かない）。
+下記テンプレを、Step 2 の検出結果で埋めて Write。「検出: なし」だった項目は対応行を削除するか「未導入」と明記する（推測で「あり」と書かない）。
 
 ```markdown
 # TDD スキル共通設定（Project Settings）— {app_name}
@@ -151,7 +151,7 @@ bundle exec rspec spec/path/to/foo_spec.rb:42        # 行指定
 
 ### 4-2. `commit-convention.md` / `workflow-schema.md` / `state-machine.md`
 
-plugin 同梱の テンプレ（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/{filename}`）を Read して Write する（プロジェクト固有差分は project-settings.md に集約）。ただし 3 ファイルの見出しのリポ名（`— sales-hub`）は実プロジェクト名に置換し、`commit-convention.md` の「husky + lint-staged の pre-commit hook あり」の段落は検出結果に合わせる（hook 無しなら「hook が無いため、コミット前に lint / format を手動実行する」に書き換える）。`${CLAUDE_PLUGIN_ROOT}` が解決できない環境では、`plugins/tdd-rails/skills/_shared-tdd/{filename}` を相対 Read する。
+plugin 同梱のテンプレ（`${CLAUDE_PLUGIN_ROOT}/skills/_shared-tdd/{filename}`）を Read して Write する（プロジェクト固有差分は project-settings.md に集約）。ただし 3 ファイルの見出しのリポ名（`— sales-hub`）は実プロジェクト名に置換し、`commit-convention.md` の「husky + lint-staged の pre-commit hook あり」の段落は検出結果に合わせる（hook 無しなら「hook が無いため、コミット前に lint / format を手動実行する」に書き換える）。`${CLAUDE_PLUGIN_ROOT}` が解決できない環境では、`plugins/tdd-rails/skills/_shared-tdd/{filename}` を相対 Read する。
 
 ## Step 5: ワークフロー状態の git 追跡設定（確認）
 

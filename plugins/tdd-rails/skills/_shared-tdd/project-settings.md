@@ -1,7 +1,7 @@
 # TDD スキル共通設定（Project Settings）— sales-hub
 
 > 全 TDD スキルの単一情報源。各スキルは `Read .claude/skills/_shared-tdd/project-settings.md` で参照する。
-> sales-hub は Rails(RSpec) バックエンド の単一スタック（マルチテナント Rails API）。
+> sales-hub は Rails(RSpec) バックエンドの単一スタック（マルチテナント Rails API）。
 
 ## 構成とテスト
 
