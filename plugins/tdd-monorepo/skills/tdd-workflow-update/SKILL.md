@@ -1,8 +1,7 @@
 ---
 name: tdd-workflow-update
-description: Update an in-progress retail-hub monorepo TDD workflow JSON via natural-language instructions. Rewrites future cycle_plan entries, user_instructions, run_mode, task_content while protecting completed_cycles, ecosystem, and current-cycle.json.
+description: 進行中の TDD ワークフロー JSON を自然言語の指示で更新する（未消化サイクルの追加・削除・修正、run_mode の切替など）。完了済みサイクル・進行中サイクル・ecosystem は保護する。「サイクルを追加して」「ここから一気通貫で」と頼まれたときに使う。
 argument-hint: <workflow_id> <update-instructions>
-model: opus
 allowed-tools:
   - Read
   - Write
@@ -20,21 +19,22 @@ examples:
     description: run_mode を auto に切替
 ---
 
-進行中の retail-hub TDD ワークフロー JSON を自然言語の指示で動的に更新する。**未消化部分のみ**書き換え、進行中サイクル・完了済みサイクル・**ecosystem** は保護する。
+進行中の retail-hub TDD ワークフロー JSON を自然言語の指示で動的に更新する。未消化部分のみ書き換え、進行中サイクル・完了済みサイクル・ecosystem は保護する。
 
-## 共通契約（必ず Read）
-- `.claude/skills/_shared-tdd/workflow-schema.md`（**正準スキーマ・キー名固定・保護対象/編集対象の定義**）
+## 共通契約
+このセッションでまだ読んでいない（または compact 後で内容が手元にない）ときだけ Read する。`/tdd` から続けて呼ばれた場合は読み込み済み。
+- `.claude/skills/_shared-tdd/workflow-schema.md`（正準スキーマ・キー名固定・保護対象/編集対象の定義）
 - `.claude/skills/_shared-tdd/project-settings.md`
 
 ## 編集対象 / 保護対象（workflow-schema 準拠）
 
-| 編集可能 | 保護（絶対に書き換えない） |
+| 編集可能 | 保護（書き換えない） |
 |---|---|
 | `cycle_plan[]` の未消化エントリ（`cycle > current_cycle`、または `== current_cycle` かつ `current-cycle.json` が存在する＝進行中） | `completed_cycles[]` 全件 |
 | `user_instructions`（追記マージ） | `current_cycle` |
-| `run_mode`（`phase-stop`↔`auto`） | **`ecosystem`**（計画時に確定。変更＝別ワークフロー） |
+| `run_mode`（`phase-stop`↔`auto`） | `ecosystem`（計画時に確定。変更＝別ワークフロー） |
 | `task_content`（明示指示時のみ。旧値を `task_content_history[]` に append） | `created_at` / `total_cycles`（cycle 追加/削除時のみ ±1 可） |
-| `updated_at`（必ず更新） | 完了済み `cycle_plan` エントリ / `commit` / **別ファイル** `current-cycle.json` / `schema_version` / `workflow_id` |
+| `updated_at`（毎回更新） | 完了済み `cycle_plan` エントリ / `commit` / 別ファイル `current-cycle.json` / `schema_version` / `workflow_id` |
 
 > `ecosystem` を変えたい場合はワークフローの作り直し（別 workflow_id）を案内する。1ワークフロー=1エコシステム。
 
@@ -46,19 +46,19 @@ examples:
 
 ## Step 3: 提案 diff の構築
 指示を解釈して操作を提案（cycle_plan の未消化エントリ 追加/削除/修正、user_instructions 追記、run_mode 切替、task_content 上書き）。
-- 削除: 該当エントリを除外し、**後続の未消化エントリの `cycle` を詰めて再採番**、`total_cycles` −1（`current_cycle` は `cycle_plan` の添字として使われるため欠番を作らない。TODO も同期）。
+- 削除: 該当エントリを除外し、後続の未消化エントリの `cycle` を詰めて再採番、`total_cycles` −1（`current_cycle` は `cycle_plan` の添字として使われるため欠番を作らない。TODO も同期）。
 - 追加: 末尾に追加（`cycle` = 既存最大+1）、`total_cycles` +1（`cycle_plan` 長 == `total_cycles` を維持）。
 - 修正: 該当の `title`/`kind` を書換。
-- **ecosystem 変更の指示が来たら拒否**（別ワークフロー案内）。
+- ecosystem 変更の指示が来たら拒否（別ワークフロー案内）。
 diff を提示（編集内容 + 保護対象を明示）。
 
 ## Step 4: 承認ゲート（必須）
-AskUserQuestion で `[適用] / [キャンセル] / [部分適用]`。**[適用] のときのみ Step 5**。[部分適用] は変更ごとに再質問。[キャンセル] は何も書かず終了。
+AskUserQuestion で `[適用] / [キャンセル] / [部分適用]`。[適用] のときのみ Step 5。[部分適用] は変更ごとに再質問。[キャンセル] は何も書かず終了。
 
 ## Step 5: 書込（承認後のみ）
 1. Read で現状の workflow JSON 全文取得 → メモリ展開。
-2. 編集対象キーのみ書換、**保護対象（ecosystem 含む）は元の値をそのままコピー**。`updated_at` を `date -u +%Y-%m-%dT%H:%M:%SZ` で更新。Write で上書き。
-3. **保護チェック**: 書込後に Read し直し、保護対象が更新前と完全一致を確認。不一致なら `git checkout HEAD -- ...`（追跡されている場合）か手動復元を案内。
+2. 編集対象キーのみ書換、保護対象（ecosystem 含む）は元の値をそのままコピー。`updated_at` を `date -u +%Y-%m-%dT%H:%M:%SZ` で更新。Write で上書き。
+3. 保護チェック: 書込後に Read し直し、保護対象が更新前と完全一致を確認。不一致なら `git checkout HEAD -- ...`（追跡されている場合）か手動復元を案内。
 
 ## Step 6: 完了サマリ
 変更フィールド / 保護フィールド / `次: /tdd {$0}` を表示。

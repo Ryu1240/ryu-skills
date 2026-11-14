@@ -1,7 +1,7 @@
 # ワークフロー状態スキーマ（正準・単一情報源）— retail-hub
 
-> `.claude/tdd-workflow/workflow-{id}.json` と `current-cycle.json` の**唯一の正しい形**。
-> 全スキルはこのスキーマで読み書きする。**キー名の別名・揺れは禁止**。
+> `.claude/tdd-workflow/workflow-{id}.json` と `current-cycle.json` の唯一の正しい形。
+> 全スキルはこのスキーマで読み書きする。キー名の別名・揺れは禁止。
 > モノレポのため `ecosystem`（backend / frontend）が必須。
 
 ## キー名の固定（別名禁止）
@@ -62,7 +62,7 @@
 target_files, patterns, user_instructions, run_mode, cycle_plan, total_cycles, current_cycle,
 todo_task_id, completed_cycles, created_at, updated_at`
 
-計画フェーズは上記を満たす JSON を Write し、**Read で自己検証してから**完了とする（1つでも欠ければ未完了）。
+計画フェーズは上記をすべて満たす JSON を Write して完了とする（1つでも欠ければ未完了）。
 
 ## current-cycle.json スキーマ（進行中サイクルのみ）
 
@@ -83,5 +83,5 @@ todo_task_id, completed_cycles, created_at, updated_at`
 }
 ```
 
-- **commit 完了時に `current-cycle.json` を削除**し、`completed_cycles` に移す。削除後に不在を Read で確認。
+- commit 完了時に `current-cycle.json` を削除し、`completed_cycles` に移す。
 - 次サイクルの Red 入口は「`current-cycle.json` 不在」を前提条件に検証する。
