@@ -1,6 +1,6 @@
 ---
 name: tdd-coverage-review
-description: Test coverage review for any language - analyze a (target × test-category) matrix and add missing test cases
+description: TDD 完了後に、公開インターフェイス × テストカテゴリのマトリクスでテストの抜けを洗い出し、承認されたケースを追加する（あらゆる言語向け。テストコマンドは project-settings.md から読む）。/tdd から呼ばれるほか、「テストの網羅性を見て」と頼まれたときにも使う。
 argument-hint: <workflow_id>
 model: opus
 allowed-tools:
@@ -19,15 +19,16 @@ examples:
 
 TDD 完了後、テスト網羅性を「対象 × テストカテゴリ」のマトリクスで分析し、不足を追加する。言語に依存しないカテゴリで評価する。
 
-## 共通契約（必ず Read）
+## 共通契約
+このセッションでまだ読んでいない（または compact 後で内容が手元にない）ときだけ Read する。`/tdd` から続けて呼ばれた場合は読み込み済み。
 - `.claude/skills/_shared-tdd/project-settings.md`（テスト実行コマンド・言語固有の慣習）/ `workflow-schema.md` / `commit-convention.md`
 
 ## 入口ゲート
-`current-cycle.json` が**存在しないこと**（サイクル進行中でない）と `completed_cycles` 非空を確認。進行中なら `/tdd-commit {id}` を案内し中断。
+`current-cycle.json` が存在しないこと（サイクル進行中でない）と `completed_cycles` 非空を確認。進行中なら `/tdd-commit {id}` を案内し中断。
 
 ## 1. コンテキスト
 `workflow-{id}.json`（`task_title`, `completed_cycles`, `patterns`, `todo_task_id`）を Read。対象テスト・実装ファイルを Read。
-実装から**公開インターフェイス**（関数/メソッド/エンドポイント/コマンド/イベント）を列挙し、マトリクスの行にする。
+実装から公開インターフェイス（関数/メソッド/エンドポイント/コマンド/イベント）を列挙し、マトリクスの行にする。
 project-settings に `{{TEST_COVERAGE}}` があれば実行し、未到達箇所の手がかりにする（未導入ならスキップ）。
 
 ## 2. マトリクス
@@ -55,18 +56,18 @@ project-settings に `{{TEST_COVERAGE}}` があれば実行し、未到達箇所
 
 ## 4. 追加・実行
 選択分を対応テストファイルの適切な位置に追加する。
-- **既存テストは絶対に変更しない**（追加のみ）。
+- 既存テストは変更しない（追加のみ）。
 - 既存の慣習を踏襲（不変条件#4）。テストデータ・モックも必要に応じ追加。
-- 独立性の担保方法を必ず実装形に落とす。
+- 独立性の担保方法を実装形に落とす（セットアップ/ティアダウンとして書く）。
 - project-settings の `{{TEST_ONE_FILE}}`（複数ファイルなら `{{TEST_ALL}}`）で全件 pass を確認（既存を壊していないこと）。
 
 ## 5. コミット + 記録
-commit-convention に従い `test: 網羅性レビューで不足テストを追加`（**署名はバージョン無し**）でコミット（hook 準拠）。
+commit-convention に従い `test: 網羅性レビューで不足テストを追加`（署名はバージョン無し）でコミット（hook 準拠）。
 `workflow-{id}.json` に `coverage_review`（before/after/added/commit/completed_at）を記録、`updated_at` 更新。
 
 ## 6. サマリ（簡潔）
 Before/After テスト数 / カテゴリ別追加内容 / コミット SHA。→ 自動遷移（tdd が Optimize へ）。
 
 ## 注意
-既存テストは絶対に変更しない（追加のみ）。各テストは独立（順序非依存・単一実行可）。
-カバレッジ数値の追求が目的ではない — **意味のあるケースを足す**（数値を上げるためだけのテストは追加しない）。
+既存テストは変更しない（追加のみ。既存の意味を変えると網羅性の比較が成り立たない）。各テストは独立（順序非依存・単一実行可）。
+カバレッジ数値の追求が目的ではない — 意味のあるケースを足す（数値を上げるためだけのテストは追加しない）。
