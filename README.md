@@ -2,13 +2,14 @@
 
 Claude Code 向け **TDD ワークフロー自動化スキル**の plugin マーケットプレイスです。Plan → Red → Green → Refactor → Commit のサイクルを、状態を永続化しながらフェーズ単位で進め、最後に Coverage Review と Test Optimize まで回すオーケストレーションを提供します。
 
-スタックごとに 8 つの plugin に分かれています（`tdd-monorepo` は複数スタック混在向け、`tdd-universal` はそれ以外のあらゆる言語向け）。
+スタックごとに 9 つの plugin に分かれています（`tdd-monorepo` は複数スタック混在向け、`tdd-universal` はそれ以外のあらゆる言語向け）。
 
 | Plugin | 対象スタック | スラッシュコマンド | ディレクトリ |
 |---|---|---|---|
 | **`tdd-rails`** | Ruby on Rails + RSpec（マルチテナント API） | `/tdd …` | [`plugins/tdd-rails/`](plugins/tdd-rails/) |
 | **`tdd-python`** | Python + pytest + pydantic（CLI ツール） | `/tdd …` | [`plugins/tdd-python/`](plugins/tdd-python/) |
 | **`tdd-frontend`** | Vue 3 + Vite + Vitest（SPA フロントエンド） | `/tdd …` | [`plugins/tdd-frontend/`](plugins/tdd-frontend/) |
+| **`tdd-nextjs`** | Next.js（App Router）+ React + TypeScript（Vitest + React Testing Library。E2E は範囲外） | `/tdd …` | [`plugins/tdd-nextjs/`](plugins/tdd-nextjs/) |
 | **`tdd-node`** | TypeScript + Node.js バックエンド（Vitest） | `/tdd …` | [`plugins/tdd-node/`](plugins/tdd-node/) |
 | **`tdd-go`** | Go バックエンド（標準 `testing` + テーブル駆動 + `httptest`） | `/tdd …` | [`plugins/tdd-go/`](plugins/tdd-go/) |
 | **`tdd-rust`** | Rust（`cargo test` + axum + sqlx。ワークスペース対応） | `/tdd …` | [`plugins/tdd-rust/`](plugins/tdd-rust/) |
@@ -17,7 +18,7 @@ Claude Code 向け **TDD ワークフロー自動化スキル**の plugin マー
 | **`pr-tour`** | 言語非依存。**PR をエントリーポイントから実行順にツアー形式で解説**（TDD ではありません） | `/pr-tour …` | [`plugins/pr-tour/`](plugins/pr-tour/) |
 | **`stacked-pr`** | 言語非依存。**GitHub のスタック PR を作る・下から順に揃える・merge-async でマージする**（TDD ではありません） | `/stacked-pr …` | [`plugins/stacked-pr/`](plugins/stacked-pr/) |
 
-> 専用 plugin（`tdd-universal` 以外）の skill はプロジェクト固有の前提を `skills/_shared-tdd/project-settings.md` に集約しています。サンプルとして架空リポジトリ **`sales-hub`**（Rails）/ **`taskcli`**（Python）/ **`storefront`**（フロントエンド）/ **`order-api`**（Node バックエンド）/ **`shipment-api`**（Go）/ **`ledger-core`**（Rust）/ **`retail-hub`**（モノレポ）を題材に記述してあるので、自分のプロジェクトに合わせて `project-settings.md` を書き換えて使ってください（`tdd-bootstrap` が自動生成します）。
+> 専用 plugin（`tdd-universal` 以外）の skill はプロジェクト固有の前提を `skills/_shared-tdd/project-settings.md` に集約しています。サンプルとして架空リポジトリ **`sales-hub`**（Rails）/ **`taskcli`**（Python）/ **`storefront`**（フロントエンド）/ **`booking-web`**（Next.js）/ **`order-api`**（Node バックエンド）/ **`shipment-api`**（Go）/ **`ledger-core`**（Rust）/ **`retail-hub`**（モノレポ）を題材に記述してあるので、自分のプロジェクトに合わせて `project-settings.md` を書き換えて使ってください（`tdd-bootstrap` が自動生成します）。
 >
 > **`tdd-universal` は言語固有の知識をスキル本体に持たず**、すべて `project-settings.md` から読みます。未対応言語では bootstrap が走査＋**対話ヒアリング**で設定を構築するため、マニフェストが検出できない環境でも成立します。
 
@@ -33,6 +34,7 @@ Claude Code の plugin マーケットプレイスとして登録し、使いた
 /plugin install tdd-rails@general-skills      # Rails プロジェクト用
 /plugin install tdd-python@general-skills     # Python プロジェクト用
 /plugin install tdd-frontend@general-skills   # Vue/Vite フロントエンド用
+/plugin install tdd-nextjs@general-skills     # Next.js（App Router）フロントエンド用
 /plugin install tdd-node@general-skills       # TS/Node バックエンド用
 /plugin install tdd-go@general-skills         # Go バックエンド用
 /plugin install tdd-rust@general-skills       # Rust 用
@@ -44,7 +46,7 @@ Claude Code の plugin マーケットプレイスとして登録し、使いた
 
 各 plugin は同じ skill 名（`/tdd`, `/tdd-red`, `/tdd-green`, …）を提供します。**プロジェクトごとに 1 つだけを `.claude/settings.json` で有効化するのが推奨運用**です。選び方:
 
-- 単体スタック（Rails / Python / Vue / TS・Node バックエンド / Go / Rust）→ 対応する専用 plugin
+- 単体スタック（Rails / Python / Vue / Next.js / TS・Node バックエンド / Go / Rust）→ 対応する専用 plugin
 - **Rails+Vue のモノレポ** → `tdd-monorepo`（1 スキルセットで backend/frontend をエコシステム自動判定するため、単体プラグインの同時有効化＝skill 名衝突を避けられます）
 - **上記以外の言語** → `tdd-universal`（bootstrap が対話でスタックを聞き取って設定を構築）
 
@@ -112,6 +114,22 @@ Vue 3 + Vite + Vitest フロントエンド向け。Vue Testing Library（role �
 - **[tdd-coverage-review](plugins/tdd-frontend/skills/tdd-coverage-review/SKILL.md)** — component/composable × テストカテゴリのマトリクスで不足テストを補完。
 - **[tdd-optimize](plugins/tdd-frontend/skills/tdd-optimize/SKILL.md)** — Vitest テストの最適化（独立性を担保。承認後に適用）。
 - **[tdd-workflow-update](plugins/tdd-frontend/skills/tdd-workflow-update/SKILL.md)** — 進行中ワークフロー JSON を自然言語で動的更新。
+
+### `tdd-nextjs`（`/tdd`）
+
+Next.js（App Router）+ React + TypeScript 向け（Vitest + React Testing Library）。async Server Component は React Testing Library で描画できないため、**Server Component を薄く保ち、ロジックを `lib/` の純粋関数・custom hook・Client Component に寄せてテストする**方針を前提に、各フェーズが「どこでテストするか」（lib / hook / component / Server Action / Route Handler / API クライアント）を判定します。MSW・TanStack Query（各テストで新しい `QueryClient`）・OpenAPI の生成型・Auth0 SPA と `next/navigation` / `next/cache` のモックまで踏み込んで指示し、Refactor では**Server と Client の境界 / `useEffect` の誤用 / query key と無効化 / アクセシビリティ**を検出します。テスト基盤が未整備なリポジトリでは bootstrap がセットアップ案を出し、`frontend/` のようなサブディレクトリにも対応します。E2E（Playwright）は範囲外です。詳細は [`plugins/tdd-nextjs/README.md`](plugins/tdd-nextjs/README.md) を参照。
+
+- **[tdd](plugins/tdd-nextjs/skills/tdd/SKILL.md)** — オーケストレーター。Phase 2 でテスト種別を判定し、Plan→サイクル→Coverage Review→Optimize を統括。
+- **[tdd-bootstrap](plugins/tdd-nextjs/skills/tdd-bootstrap/SKILL.md)** — 初回セットアップ。Next.js の Router・テスト基盤・TanStack Query・認証・OpenAPI 型を走査し、不明点は対話で確認（承認制）。テスト基盤の不足は承認後に追加。あわせて `.claude/tdd-workflow/` を gitignore するかを確認します。
+- **[tdd-project-settings-update](plugins/tdd-nextjs/skills/tdd-project-settings-update/SKILL.md)** — 生成済み設定を自然言語で調整（コマンドは `package.json` の scripts で裏取り）。
+- **[tdd-red](plugins/tdd-nextjs/skills/tdd-red/SKILL.md)** — Red。テスト種別ごとの作法（role で引く・`findBy*`・user-event・MSW・Next.js のモック）で失敗するテストを 1 本だけ書く。
+- **[tdd-green](plugins/tdd-nextjs/skills/tdd-green/SKILL.md)** — Green。最小実装（境界の遵守・アクセシブルな markup・TanStack Query・OpenAPI の型）。
+- **[tdd-refactor](plugins/tdd-nextjs/skills/tdd-refactor/SKILL.md)** — Refactor。Server/Client の境界 / ロジックの切り出し / `useEffect` / query key / a11y / 型。
+- **[tdd-commit](plugins/tdd-nextjs/skills/tdd-commit/SKILL.md)** — Commit。husky/lint-staged 準拠でコミット（再生成した OpenAPI の型も含める）。
+- **[tdd-evacuator](plugins/tdd-nextjs/skills/tdd-evacuator/SKILL.md)** — リファクタ候補・テスト妥当性・サイクル境界の追加テストと E2E 側の候補を提案（読み取り専用）。
+- **[tdd-coverage-review](plugins/tdd-nextjs/skills/tdd-coverage-review/SKILL.md)** — ローディング・API エラー・空状態・認証状態・mutation 後の再取得まで含むマトリクスで補完。
+- **[tdd-optimize](plugins/tdd-nextjs/skills/tdd-optimize/SKILL.md)** — `it.each` 化・render ヘルパへの集約・DOM 不要なテストの node 環境化。`--sequence.shuffle` で独立性を検証。
+- **[tdd-workflow-update](plugins/tdd-nextjs/skills/tdd-workflow-update/SKILL.md)** — 進行中ワークフロー JSON を自然言語で動的更新。
 
 ### `tdd-node`（`/tdd`）
 
