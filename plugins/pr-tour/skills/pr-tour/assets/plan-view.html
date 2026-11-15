@@ -408,7 +408,71 @@
   }
 </style>
 <style id="pr-tour-figure">
-  /* 図解（fig.py の table / tree）と拡大表示。plan-step.py --upgrade はこのブロックを丸ごと差し替える */
+  /* 見る場所の行・パスのコピー・図解（fig.py の table / tree）・拡大表示。plan-step.py --upgrade はこのブロックを丸ごと差し替える */
+  .step .files .loc {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 2px 8px;
+  }
+  .step .files .loc .tag {
+    flex: none;
+  }
+  .step .files .loc code {
+    min-width: 0;
+    word-break: break-all;
+    overflow-wrap: anywhere;
+  }
+  .step .files .loc .why {
+    flex: 1 1 14em;
+  }
+  .step .files[data-confirmed]::before {
+    content: "見る場所（確定）";
+    font-size: 11px;
+    color: var(--muted);
+  }
+  code.copyable {
+    cursor: copy;
+    position: relative;
+  }
+  code.copyable:hover,
+  code.copyable:focus-visible {
+    box-shadow: inset 0 0 0 1px var(--accent);
+  }
+  code.copyable:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+  code.copyable::after {
+    content: "📋";
+    font-size: 10px;
+    margin-left: 4px;
+    opacity: 0;
+  }
+  code.copyable:hover::after,
+  code.copyable:focus-visible::after {
+    opacity: 0.7;
+  }
+  .copy-toast {
+    position: fixed;
+    z-index: 10;
+    padding: 3px 10px;
+    border-radius: 6px;
+    background: var(--ink);
+    color: var(--card);
+    font-size: 12px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .copy-toast.show {
+    opacity: 1;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .copy-toast {
+      transition: none;
+    }
+  }
   details.explain figure {
     cursor: zoom-in;
     border-radius: 6px;
@@ -781,6 +845,95 @@
     });
   })();
 </script>
+<script id="pr-tour-copy">
+  // 見る場所・テスト対応・指摘のファイルパスをクリック（または Enter / Space）でコピーする。
+  // コピーするのは「パス:開始行」（12-20 なら :12）。エディタのファイル検索や code -g でそのまま開ける。
+  // Shift を押しながらならパスだけ。data-copy 属性があればその値をそのままコピーする。
+  // Artifact の中では clipboard が拒否される環境があるので、execCommand、テキストの選択の順に落とす。
+  // plan-step.py --upgrade はこのブロックを丸ごと差し替える
+  (() => {
+    const SEL = ".step .files code, table code, ul.findings code, .step .findings code, code[data-copy]";
+    const RE = /^([^\s:]+?)(?::(\d+)(?:-\d+)?)?$/;
+    let toast, timer;
+
+    function target(el, pathOnly) {
+      if (el.dataset.copy) return el.dataset.copy;
+      const m = el.textContent.trim().match(RE);
+      if (!m) return null;
+      const path = m[1];
+      if (!path.includes("/") && !/\.\w+$/.test(path)) return null;
+      return pathOnly || !m[2] ? path : path + ":" + m[2];
+    }
+
+    function show(el, msg) {
+      if (!toast) {
+        toast = document.createElement("div");
+        toast.className = "copy-toast";
+        toast.setAttribute("role", "status");
+        toast.setAttribute("aria-live", "polite");
+        document.body.append(toast);
+      }
+      toast.textContent = msg;
+      const r = el.getBoundingClientRect();
+      toast.style.left = Math.max(8, Math.min(r.left, window.innerWidth - 260)) + "px";
+      toast.style.top = (r.top > 36 ? r.top - 30 : r.bottom + 6) + "px";
+      toast.classList.add("show");
+      clearTimeout(timer);
+      timer = setTimeout(() => toast.classList.remove("show"), 1500);
+    }
+
+    async function copy(el, text) {
+      // writeText はクリックのハンドラから同期的に呼ばれる（最初の await より前）
+      try {
+        await navigator.clipboard.writeText(text);
+        return show(el, "コピーしました");
+      } catch (_) {}
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.setAttribute("readonly", "");
+        ta.style.cssText = "position:fixed;top:0;left:0;opacity:0";
+        document.body.append(ta);
+        ta.select();
+        const ok = document.execCommand("copy");
+        ta.remove();
+        el.focus({ preventScroll: true });
+        if (ok) return show(el, "コピーしました");
+      } catch (_) {}
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      show(el, "選択しました。⌘C / Ctrl+C でコピー");
+    }
+
+    document.querySelectorAll(SEL).forEach((el) => {
+      if (el.closest("figure")) return; // 図の中は拡大表示のクリックに任せる
+      const t = target(el, false);
+      if (!t) return;
+      el.classList.add("copyable");
+      el.tabIndex = 0;
+      el.setAttribute("role", "button");
+      el.setAttribute("aria-label", "コピー: " + t);
+      el.title = "クリックで " + t + " をコピー（Shift+クリックでパスだけ）";
+    });
+    document.addEventListener("click", (e) => {
+      const el = e.target.closest("code.copyable");
+      if (!el || String(window.getSelection())) return;
+      const t = target(el, e.shiftKey);
+      if (t) copy(el, t);
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      const el = e.target.closest && e.target.closest("code.copyable");
+      if (!el) return;
+      e.preventDefault();
+      const t = target(el, e.shiftKey);
+      if (t) copy(el, t);
+    });
+  })();
+</script>
 <!--
   テンプレートの使い方（SKILL.md の Phase 4-8 / Phase 5-4）
 
@@ -793,9 +946,8 @@
                          <article class="step" id="step-1">
                            <div class="num">1</div>
                            <div class="title">ステップ名<span class="star">⭐</span></div>
-                           <div class="files">見る場所を 1 行 1 ファイルで:
-                             <div><span class="tag ctx">📖</span><code>path:12-20</code><span class="why">何のために見るか</span></div>
-                           </div>
+                           <div class="files"></div>（中身は書かない。plan-step.py --sync がプランの「見る場所」から作る:
+                             <div class="loc"><span class="tag ctx">📖 既存</span><code>path:12-20</code><span class="why">何のために見るか</span></div>）
                            <div class="desc"><b>説明:</b> 2〜3 行</div>
                            <div class="tests"><b>テスト:</b> 🧪 tests/... の '...'／なし</div>
                            <div class="findings"><b>指摘:</b> 🔍 #2 CONFIRMED path:57 …／レビュー進行中</div>（指摘が無いステップでは省く）
@@ -808,7 +960,7 @@
                      補足ステップも同じ構造で <h3>補足</h3> の下に置く。
                      <details class="explain"> の中身は Phase 5 で plan-step.py --figure が置き換える（図は 2 枚まで）。
                      解説の文章はここに書かず、チャットに出す
-    __TESTS__        <tr><td>Step 2 Order#cancel</td><td>🧪 tests/...:80-98</td><td>…</td><td>…</td></tr>
+    __TESTS__        <tr><td>Step 2 Order#cancel</td><td>🧪 <code>tests/...:80-98</code></td><td>…</td><td>…</td></tr>
                      テストが無い行は <td class="none">なし</td>
     __FINDINGS__     <tr><td>2</td><td class="verdict">CONFIRMED</td><td><code>path:57</code></td><td>…</td><td>Step 4</td><td>未実測</td></tr>
                      届いていなければ <tr><td colspan="6">進行中（起動 HH:MM）</td></tr>、
@@ -817,6 +969,8 @@
     __PLAN_PATH__    保存した plan.md のリポジトリ相対パス
     __UPDATED__      YYYY-MM-DD HH:MM
   footer の「更新: … ／ 現在: …」は plan-step.py が正規表現で書き換えるので、全角スラッシュ区切りの書式を保つこと。
-  <style id="pr-tour-figure"> と <script id="pr-tour-lightbox"> は図の表示と拡大表示の仕組み。プレースホルダは無いのでそのまま残す。
-  このテンプレートより前に作った HTML には plan-step.py --upgrade で同じブロックを差し込める。
+  <style id="pr-tour-figure">・<script id="pr-tour-lightbox">・<script id="pr-tour-copy"> は、見る場所の表示、図の拡大表示、
+  パスのコピーの仕組み。プレースホルダは無いのでそのまま残す。パスのコピーは <code> の中身がパスに見えるもの
+  （/ を含むか拡張子があり、末尾に :行 や :行-行 が付いてもよい）に自動で付くので、パスは必ず <code> で囲む。
+  このテンプレートより前に作った HTML には plan-step.py --upgrade で同じブロックを差し込める（id="pr-tour-*" をすべて）。
 -->
