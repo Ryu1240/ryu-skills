@@ -407,6 +407,168 @@
     content: "🔍 ";
   }
 </style>
+<style id="pr-tour-figure">
+  /* 図解（fig.py の table / tree）と拡大表示。plan-step.py --upgrade はこのブロックを丸ごと差し替える */
+  details.explain figure {
+    cursor: zoom-in;
+    border-radius: 6px;
+  }
+  details.explain figure:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+  }
+  .fig-scroll {
+    overflow-x: auto;
+  }
+  table.fig-table {
+    width: auto;
+    min-width: 60%;
+    font-size: 12.5px;
+  }
+  table.fig-table th[scope="row"] {
+    color: var(--ink);
+    font-weight: 500;
+    font-size: 12.5px;
+  }
+  table.fig-table code,
+  ul.fig-tree code {
+    font-size: 12px;
+  }
+  table.fig-table .new {
+    background: var(--new-soft);
+    color: var(--new);
+  }
+  table.fig-table .mod {
+    background: var(--mod-soft);
+    color: var(--mod);
+  }
+  table.fig-table .del {
+    color: var(--muted);
+    text-decoration: line-through;
+  }
+  table.fig-table .ctx {
+    background: var(--ctx-soft);
+    color: var(--ctx);
+  }
+  table.fig-table .test {
+    background: var(--test-soft);
+    color: var(--test);
+  }
+  table.fig-table .warn {
+    background: var(--warn-soft);
+    color: var(--warn);
+  }
+  table.fig-table .accent {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  ul.fig-tree {
+    list-style: none;
+    margin: 0;
+    padding: 10px 12px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.8;
+  }
+  ul.fig-tree .tag.del {
+    background: var(--ctx-soft);
+    color: var(--muted);
+  }
+  ul.fig-tree .note {
+    color: var(--muted);
+    font-size: 12px;
+  }
+  dialog.figbox {
+    width: min(96vw, 1400px);
+    height: 92vh;
+    max-width: none;
+    max-height: none;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--card);
+    color: var(--ink);
+    overflow: hidden;
+  }
+  dialog.figbox[open] {
+    display: flex;
+    flex-direction: column;
+  }
+  dialog.figbox::backdrop {
+    background: rgba(8, 12, 18, 0.62);
+  }
+  .figbox-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--line);
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .figbox-bar button {
+    min-width: 34px;
+    height: 30px;
+    padding: 0 10px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--bg);
+    color: var(--ink);
+    font: inherit;
+    cursor: pointer;
+  }
+  .figbox-bar button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+  .figbox-bar .figbox-pct {
+    min-width: 46px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .figbox-bar .figbox-close {
+    margin-left: auto;
+  }
+  .figbox-view {
+    flex: 1;
+    overflow: auto;
+    padding: 16px;
+    cursor: grab;
+    overscroll-behavior: contain;
+  }
+  .figbox-view.dragging {
+    cursor: grabbing;
+    user-select: none;
+  }
+  .figbox-stage {
+    width: max-content;
+    margin: 0 auto;
+  }
+  .figbox-stage figure {
+    margin: 0;
+    cursor: auto;
+  }
+  .figbox-stage svg {
+    max-width: none;
+    color: var(--ink);
+  }
+  .figbox-stage .fig-scroll {
+    overflow: visible;
+  }
+  .figbox-stage table,
+  .figbox-stage ul.fig-tree {
+    cursor: auto;
+  }
+  @media (max-width: 640px) {
+    dialog.figbox {
+      width: 100vw;
+      height: 100dvh;
+      border-radius: 0;
+    }
+  }
+</style>
 <div class="wrap">
   <header>
     <h1>__TITLE__</h1>
@@ -470,6 +632,155 @@
 
   <footer>プランファイル: <code>__PLAN_PATH__</code> ／ 更新: __UPDATED__ ／ 現在: 未開始</footer>
 </div>
+<script id="pr-tour-lightbox">
+  // 図をクリック（または Enter / Space）で拡大表示する。Esc・背景クリック・✕ で閉じる。
+  // SVG・表・ツリーのどれでも同じに扱う。図はコピーせずダイアログへ移し、閉じたら元に戻す
+  // （コピーすると SVG のマーカー id がページ内で重複する）。plan-step.py --upgrade はこのブロックを丸ごと差し替える
+  (() => {
+    const SEL = "details.explain figure";
+    const MIN = 0.25, MAX = 6, STEP = 1.25;
+    let dlg, view, stage, pct, fig = null, holder = null, z = 1, fitZ = 1, saved = [];
+
+    function build() {
+      dlg = document.createElement("dialog");
+      dlg.className = "figbox";
+      dlg.setAttribute("aria-label", "図の拡大表示");
+      dlg.innerHTML =
+        '<div class="figbox-bar">' +
+        '<button type="button" data-z="fit">全体</button>' +
+        '<button type="button" data-z="1">100%</button>' +
+        '<button type="button" data-z="out" aria-label="縮小">−</button>' +
+        '<button type="button" data-z="in" aria-label="拡大">＋</button>' +
+        '<span class="figbox-pct" aria-live="polite"></span>' +
+        '<button type="button" class="figbox-close" data-z="close" aria-label="閉じる">✕ 閉じる</button>' +
+        "</div>" +
+        '<div class="figbox-view"><div class="figbox-stage"></div></div>';
+      document.body.append(dlg);
+      view = dlg.querySelector(".figbox-view");
+      stage = dlg.querySelector(".figbox-stage");
+      pct = dlg.querySelector(".figbox-pct");
+
+      dlg.querySelector(".figbox-bar").addEventListener("click", (e) => {
+        const b = e.target.closest("button");
+        if (!b) return;
+        const a = b.dataset.z;
+        if (a === "close") dlg.close();
+        else if (a === "fit") setZoom(fitZ);
+        else if (a === "1") setZoom(1);
+        else setZoom(z * (a === "in" ? STEP : 1 / STEP));
+      });
+      // 背景（ダイアログの外側）をクリックしたら閉じる。::backdrop のクリックは dialog 自身に届く
+      dlg.addEventListener("click", (e) => {
+        if (e.target !== dlg) return;
+        const r = dlg.getBoundingClientRect();
+        const inside = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+        if (!inside) dlg.close();
+      });
+      dlg.addEventListener("keydown", (e) => {
+        if (e.target.closest("button") && (e.key === "Enter" || e.key === " ")) return;
+        if (e.key === "+" || e.key === "=") setZoom(z * STEP);
+        else if (e.key === "-") setZoom(z / STEP);
+        else if (e.key === "0") setZoom(fitZ);
+        else return;
+        e.preventDefault();
+      });
+      view.addEventListener(
+        "wheel",
+        (e) => {
+          if (!e.ctrlKey && !e.metaKey) return;
+          e.preventDefault();
+          setZoom(z * (e.deltaY < 0 ? 1.1 : 1 / 1.1));
+        },
+        { passive: false }
+      );
+      // マウスのドラッグでパンする。表とツリーの上では文字を選べるようにドラッグを使わない
+      let drag = null;
+      view.addEventListener("pointerdown", (e) => {
+        if (e.pointerType !== "mouse" || e.button !== 0) return;
+        if (e.target.closest("table, ul.fig-tree")) return;
+        drag = { x: e.clientX, y: e.clientY, l: view.scrollLeft, t: view.scrollTop };
+        view.setPointerCapture(e.pointerId);
+        view.classList.add("dragging");
+      });
+      view.addEventListener("pointermove", (e) => {
+        if (!drag) return;
+        view.scrollLeft = drag.l - (e.clientX - drag.x);
+        view.scrollTop = drag.t - (e.clientY - drag.y);
+      });
+      const endDrag = () => {
+        drag = null;
+        view.classList.remove("dragging");
+      };
+      view.addEventListener("pointerup", endDrag);
+      view.addEventListener("pointercancel", endDrag);
+      dlg.addEventListener("close", restore);
+    }
+
+    function setZoom(next) {
+      next = Math.min(MAX, Math.max(MIN, next));
+      // 見ている中心を保ったまま倍率を変える
+      const cx = (view.scrollLeft + view.clientWidth / 2) / Math.max(view.scrollWidth, 1);
+      const cy = (view.scrollTop + view.clientHeight / 2) / Math.max(view.scrollHeight, 1);
+      z = next;
+      stage.style.zoom = z;
+      pct.textContent = Math.round(z * 100) + "%";
+      view.scrollLeft = cx * view.scrollWidth - view.clientWidth / 2;
+      view.scrollTop = cy * view.scrollHeight - view.clientHeight / 2;
+    }
+
+    function open(target) {
+      if (!dlg) build();
+      fig = target;
+      holder = document.createElement("div");
+      holder.style.height = fig.offsetHeight + "px";
+      fig.replaceWith(holder);
+      stage.append(fig);
+      // SVG は viewBox の幅を等倍（100%）とする
+      saved = [...fig.querySelectorAll("svg")].map((s) => {
+        const prev = s.getAttribute("style");
+        const vb = s.viewBox && s.viewBox.baseVal;
+        if (vb && vb.width) s.style.width = vb.width + "px";
+        return [s, prev];
+      });
+      stage.style.zoom = 1;
+      dlg.showModal();
+      const pad = 32;
+      fitZ = Math.min(
+        (view.clientWidth - pad) / Math.max(stage.offsetWidth, 1),
+        (view.clientHeight - pad) / Math.max(stage.offsetHeight, 1),
+        2
+      );
+      setZoom(fitZ);
+      view.scrollTop = 0;
+      view.scrollLeft = 0;
+    }
+
+    function restore() {
+      if (!fig) return;
+      saved.forEach(([s, prev]) => (prev == null ? s.removeAttribute("style") : s.setAttribute("style", prev)));
+      holder.replaceWith(fig);
+      const f = fig;
+      fig = holder = null;
+      f.focus({ preventScroll: true });
+    }
+
+    document.querySelectorAll(SEL).forEach((f) => {
+      f.tabIndex = 0;
+      f.title = "クリックで拡大";
+    });
+    document.addEventListener("click", (e) => {
+      if (e.target.closest("a, button, summary, dialog")) return;
+      const f = e.target.closest(SEL);
+      if (f && !String(window.getSelection())) open(f);
+    });
+    document.addEventListener("keydown", (e) => {
+      if ((e.key === "Enter" || e.key === " ") && e.target.matches && e.target.matches(SEL)) {
+        e.preventDefault();
+        open(e.target);
+      }
+    });
+  })();
+</script>
 <!--
   テンプレートの使い方（SKILL.md の Phase 4-8 / Phase 5-4）
 
@@ -495,7 +806,7 @@
                          </article>
                        </div></section>
                      補足ステップも同じ構造で <h3>補足</h3> の下に置く。
-                     <details class="explain"> の中身は Phase 5 で plan-step.py --figure が置き換える。
+                     <details class="explain"> の中身は Phase 5 で plan-step.py --figure が置き換える（図は 2 枚まで）。
                      解説の文章はここに書かず、チャットに出す
     __TESTS__        <tr><td>Step 2 Order#cancel</td><td>🧪 tests/...:80-98</td><td>…</td><td>…</td></tr>
                      テストが無い行は <td class="none">なし</td>
@@ -506,4 +817,6 @@
     __PLAN_PATH__    保存した plan.md のリポジトリ相対パス
     __UPDATED__      YYYY-MM-DD HH:MM
   footer の「更新: … ／ 現在: …」は plan-step.py が正規表現で書き換えるので、全角スラッシュ区切りの書式を保つこと。
+  <style id="pr-tour-figure"> と <script id="pr-tour-lightbox"> は図の表示と拡大表示の仕組み。プレースホルダは無いのでそのまま残す。
+  このテンプレートより前に作った HTML には plan-step.py --upgrade で同じブロックを差し込める。
 -->

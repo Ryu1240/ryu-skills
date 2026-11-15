@@ -60,7 +60,7 @@
 - [ ] Step 2: <ステップ名> ⭐
   - 見る場所: 🆕 `src/orders/cancel-order.ts:1-40`（新設ユースケースの本体）/ 🧪 `src/orders/cancel-order.test.ts:20-60`（固定した振る舞い）
   - 説明すること: <…>
-  - 図解: <到達時に描く 1 枚の主張。例「handler → usecase → repository のシーケンス」。プラン段階では見出しだけ>
+  - 図解: <形と主張。形は references/figures.md の表で選ぶ。例「シーケンス図: handler → usecase → repository の呼び出し」「決定表: tags が nil／空／値ありのときのレスポンス」。主張が 2 つなら 2 枚まで並べ、図にしないなら「なし（文で足りる）」。プラン段階では見出しだけ>
   - テスト: 🧪 `src/orders/cancel-order.test.ts` の `describe('cancelOrder')`（3 例）。正常系・発送済み・他テナントの 3 条件を固定。実測: 全成功 | 失敗（理由）| 未実行
   - 指摘: 🔍 #2 CONFIRMED `src/orders/cancel-order.ts:57`（返金失敗時に状態だけ進む）| なし | レビュー進行中
   - つながり: Step 1 の `cancelOrder(input)` を受ける。次は Step 3 の `orderRepository.update()` へ

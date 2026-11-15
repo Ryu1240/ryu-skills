@@ -7,11 +7,14 @@ Markdown（正）と HTML（俯瞰）の 2 ファイルを毎ステップ手で�
 使い方:
   # ステップ k の解説を終えたとき（現在位置を k にする）
   python3 plan-step.py <plan.md> <plan.html> --step k \
-      [--figure fig.html] [--topics "論点1" ...] [--findings "#2 CONFIRMED file:line 要点" ...] \
+      [--figure fig.html [fig2.html]] [--topics "論点1" ...] [--findings "#2 CONFIRMED file:line 要点" ...] \
       [--total-steps M] [--status 完了]
 
   # 現在位置を変えずに、ステップ m へ指摘・論点・図を追記するとき（後から届いた指摘など）
   python3 plan-step.py <plan.md> <plan.html> --annotate m [--findings ...] [--topics ...] [--figure fig.html]
+
+  # このテンプレートより前に作った HTML に、図の表示と拡大表示の仕組みを差し込むとき（再開時など）
+  python3 plan-step.py <plan.md> <plan.html> --upgrade
 
 やること:
   --step k
@@ -22,9 +25,12 @@ Markdown（正）と HTML（俯瞰）の 2 ファイルを毎ステップ手で�
   --annotate m
     plan.md の現在位置と [x]、HTML の done / current と進捗率には触れず、#step-m だけを更新する
   共通（#step-N の <details class="explain"> の中身）
-    --figure があれば図の部分だけを差し替える。--findings / --topics は既存の箇条書きに追記する
+    --figure があれば図の部分だけを差し替える（1 ステップ 2 枚まで。並べて渡す）。--findings / --topics は既存の箇条書きに追記する
     （同じ文言は重ねない）。指定しなかった部分（既存の図・指摘・論点）はそのまま残す
   --status 完了 なら plan.md の状態を完了にし、HTML の current を外して footer を完了表記にする
+  --upgrade
+    assets/plan-view.html の <style id="pr-tour-figure"> と <script id="pr-tour-lightbox"> を plan.html に
+    差し込む（既にあれば差し替える）。plan.md・ステップの状態・図には触れない。何度実行しても結果は同じ
 
 HTML 側の前提: assets/plan-view.html の構造（article.step#step-N と details.explain）。
 更新後に fig.py --check で SVG の整形式を確認してから Artifact を再公開する。
@@ -34,9 +40,16 @@ import datetime as dt
 import html
 import re
 import sys
+from pathlib import Path
 
 FINDINGS_RE = re.compile(r'<ul class="findings">(.*?)</ul>\n?', re.S)
 TOPICS_RE = re.compile(r'<p class="topics">チャットで議論した論点: (.*?)</p>\n?', re.S)
+TEMPLATE = Path(__file__).resolve().parent.parent / "assets" / "plan-view.html"
+BLOCKS = (
+    re.compile(r'<style id="pr-tour-figure">.*?</style>\n?', re.S),
+    re.compile(r'<script id="pr-tour-lightbox">.*?</script>\n?', re.S),
+)
+MAX_FIGURES = 2
 
 
 def merge_items(existing, new, tag):
@@ -50,7 +63,7 @@ def merge_items(existing, new, tag):
 
 
 def update_explain(t, step, figure, findings, topics):
-    pat = re.compile(rf'(<article class="[^"]*" id="step-{step}">.*?<details class="explain"><summary>)[^<]*(</summary>)(.*?)(</details>)', re.S)
+    pat = re.compile(rf'(<article class="[^"]*" id="step-{step}">(?:(?!</article>).)*?<details class="explain"[^>]*><summary>)[^<]*(</summary>)(.*?)(</details>)', re.S)
     m = pat.search(t)
     if not m:
         print('warning: step の <details class="explain"> が見つからない。図・指摘は挿入されなかった', file=sys.stderr)
@@ -62,7 +75,7 @@ def update_explain(t, step, figure, findings, topics):
     old_topics = tm.group(1) if tm else ""
     rest = TOPICS_RE.sub("", FINDINGS_RE.sub("", inner)).strip()
     if figure:
-        rest = open(figure, encoding="utf-8").read().strip()
+        rest = "\n".join(open(f, encoding="utf-8").read().strip() for f in figure)
 
     body = "\n" + (rest + "\n" if rest else "")
     f_items = merge_items(old_findings, findings, "li")
@@ -72,6 +85,29 @@ def update_explain(t, step, figure, findings, topics):
     if t_items:
         body += '<p class="topics">チャットで議論した論点: ' + "".join(f"<span>{x}</span>" for x in t_items) + "</p>\n"
     return t[: m.start()] + m.group(1) + "図解" + m.group(2) + body + m.group(4) + t[m.end():]
+
+
+def upgrade(t):
+    """テンプレートの図・拡大表示ブロックを t に差し込む（あれば差し替える）。"""
+    tpl = TEMPLATE.read_text(encoding="utf-8")
+    for i, pat in enumerate(BLOCKS):
+        m = pat.search(tpl)
+        if not m:
+            sys.exit(f"error: テンプレートにブロックが見つからない: {pat.pattern[:40]}")
+        block = m.group(0)
+        if pat.search(t):
+            t = pat.sub(lambda _: block, t, count=1)
+        elif i == 0:
+            # 本体の <style> の直後に置く
+            j = t.find("</style>")
+            j = j + len("</style>\n") if j >= 0 else 0
+            t = t[:j] + block + t[j:]
+        else:
+            # 末尾のテンプレート説明コメントの前、無ければ末尾に置く
+            j = t.rfind("\n<!--")
+            j = j + 1 if j > t.rfind("</footer>") >= 0 else len(t)
+            t = t[:j] + block + t[j:]
+    return t
 
 
 def set_class(t, k, cls):
@@ -85,17 +121,28 @@ def main():
     g = ap.add_mutually_exclusive_group(required=True)
     g.add_argument("--step", type=int, help="解説を終えたステップ。現在位置をここにする")
     g.add_argument("--annotate", type=int, help="現在位置を変えずに追記するステップ")
-    ap.add_argument("--figure", help="fig.py render() の出力 HTML ファイル")
+    g.add_argument("--upgrade", action="store_true", help="図の表示と拡大表示の仕組みをテンプレートから差し込む")
+    ap.add_argument("--figure", nargs="+", help=f"fig.py の出力 HTML ファイル。{MAX_FIGURES} 枚まで")
     ap.add_argument("--topics", nargs="*", default=[])
     ap.add_argument("--findings", nargs="*", default=[], help="code-review の指摘。1 件 1 引数")
     ap.add_argument("--total-steps", type=int)
     ap.add_argument("--status", choices=["進行中", "完了"], default="進行中")
     a = ap.parse_args()
-    if a.annotate is not None and a.status == "完了":
+    if a.step is None and a.status == "完了":
         ap.error("--status 完了 は --step と一緒に使う")
+    if a.figure and len(a.figure) > MAX_FIGURES:
+        ap.error(f"図は 1 ステップ {MAX_FIGURES} 枚まで（渡されたのは {len(a.figure)} 枚）")
 
     now = dt.datetime.now().strftime("%Y-%m-%d %H:%M")
     t = open(a.html, encoding="utf-8").read()
+
+    if a.upgrade:
+        t = upgrade(t)
+        open(a.html, "w", encoding="utf-8").write(t)
+        print("ok upgrade（図の表示と拡大表示のブロックを反映。ステップの状態は変更なし）")
+        return
+    if not all(p.search(t) for p in BLOCKS):
+        print("warning: 図の拡大表示の仕組みが無い古い HTML。--upgrade で差し込める", file=sys.stderr)
 
     if a.annotate is not None:
         t = update_explain(t, a.annotate, a.figure, a.findings, a.topics)

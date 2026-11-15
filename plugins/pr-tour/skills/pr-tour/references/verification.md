@@ -46,7 +46,7 @@ CI が lint・型検査・依存ルール検査も回しているなら、差分
 | インストールが対話の確認で止まる | `CI=1` を付ける |
 | Python heredoc が `Non-UTF-8 code starting with ...` | 1 行目に `# -*- coding: utf-8 -*-` を置く |
 | テストが DB・外部サービス・資格情報を要求する | 用意が軽くなければ実行しない。「未実行（DB が必要）」と書き、通る前提で語らない |
-| ローカルの HTML をブラウザで描画確認できない | `scripts/fig.py --check <html>` で SVG の整形式だけ確認し、見た目は Artifact 公開後に見る |
+| ローカルの HTML をブラウザで描画確認できない | `scripts/fig.py --check <html>` で SVG と図（表・ツリー）の整形式だけ確認し、見た目は Artifact 公開後に見る |
 
 ## 外部サービスの挙動を確かめたいとき
 
