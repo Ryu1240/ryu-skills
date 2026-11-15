@@ -15,6 +15,7 @@ Claude Code 向け **TDD ワークフロー自動化スキル**の plugin マー
 | **`tdd-monorepo`** | Rails backend + Vue frontend のモノレポ（エコシステム自動判定） | `/tdd …` | [`plugins/tdd-monorepo/`](plugins/tdd-monorepo/) |
 | **`tdd-universal`** | **上記以外のあらゆる言語**（Java / Kotlin / PHP / C# / Elixir / Swift …）。対話型 bootstrap で設定を構築 | `/tdd …` | [`plugins/tdd-universal/`](plugins/tdd-universal/) |
 | **`pr-tour`** | 言語非依存。**PR をエントリーポイントから実行順にツアー形式で解説**（TDD ではありません） | `/pr-tour …` | [`plugins/pr-tour/`](plugins/pr-tour/) |
+| **`stacked-pr`** | 言語非依存。**GitHub のスタック PR を作る・下から順に揃える・merge-async でマージする**（TDD ではありません） | `/stacked-pr …` | [`plugins/stacked-pr/`](plugins/stacked-pr/) |
 
 > 専用 plugin（`tdd-universal` 以外）の skill はプロジェクト固有の前提を `skills/_shared-tdd/project-settings.md` に集約しています。サンプルとして架空リポジトリ **`sales-hub`**（Rails）/ **`taskcli`**（Python）/ **`storefront`**（フロントエンド）/ **`order-api`**（Node バックエンド）/ **`shipment-api`**（Go）/ **`ledger-core`**（Rust）/ **`retail-hub`**（モノレポ）を題材に記述してあるので、自分のプロジェクトに合わせて `project-settings.md` を書き換えて使ってください（`tdd-bootstrap` が自動生成します）。
 >
@@ -38,6 +39,7 @@ Claude Code の plugin マーケットプレイスとして登録し、使いた
 /plugin install tdd-monorepo@general-skills   # Rails+Vue モノレポ用
 /plugin install tdd-universal@general-skills  # それ以外のあらゆる言語用
 /plugin install pr-tour@general-skills        # PR をツアー形式で解説（TDD とは独立。併用可）
+/plugin install stacked-pr@general-skills     # スタック PR の作成・同期・マージ（TDD とは独立。併用可）
 ```
 
 各 plugin は同じ skill 名（`/tdd`, `/tdd-red`, `/tdd-green`, …）を提供します。**プロジェクトごとに 1 つだけを `.claude/settings.json` で有効化するのが推奨運用**です。選び方:
@@ -201,6 +203,14 @@ TDD 系とは独立した、**PR を理解するための**スキルです（ski
 - **[pr-tour](plugins/pr-tour/skills/pr-tour/SKILL.md)** — 本体。対象の解決 → 全体把握 → 起点の探索 → テスト対応 → プラン承認 → 1 ステップずつ解説 → 完了。effort 付き `code-review` があればバックグラウンドで並走させ、指摘を該当ステップに添える。
 - **[references/](plugins/pr-tour/skills/pr-tour/references/)** — 起点の辿り方、プランの書式、code-review の並走、テストの実測、保存先、レビューコメント下書き。
 - **[scripts/](plugins/pr-tour/skills/pr-tour/scripts/)** — base/head の fetch と変更ファイルのレイヤー分類、プランと視覚ビューの同時更新、図解用 SVG ヘルパー。
+
+### `stacked-pr`（`/stacked-pr`）
+
+TDD 系とは独立した、**GitHub のスタック PR（下の PR の head を上の PR の base にして積む）を扱う**スキルです（skill 名が衝突しないので他のプラグインと同時に有効化できます）。1 PR = 1 ストーリーで積んで本文に位置（前 / 次）と Linear の issue ID を書き、下の更新や main の取り込みを一番下から上へ順に伝え、マージ前に全段の CI・mergeable・未解決スレッド・本文と実装の一致を確かめてから、非同期マージ API（`merge-async`）でまとめて（または途中まで）マージします。詳細は [`plugins/stacked-pr/README.md`](plugins/stacked-pr/README.md) を参照。
+
+- **[stacked-pr](plugins/stacked-pr/skills/stacked-pr/SKILL.md)** — 本体。status / create / sync / マージ前の確認 / merge / Linear 連携。push・マージ・Linear の状態変更は OK をもらってから行う。
+- **[references/](plugins/stacked-pr/skills/stacked-pr/references/)** — 積み方、保ち方（実際に詰まった事例つき）、merge-async と途中までのマージ、Linear の Done の扱い。
+- **[scripts/](plugins/stacked-pr/skills/stacked-pr/scripts/)** — スタックを下から並べて各 PR の状態を一覧にする `stack-status.sh`。
 
 ## 設計のポイント
 

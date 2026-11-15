@@ -1,0 +1,17 @@
+{
+  "name": "stacked-pr",
+  "version": "0.1.0",
+  "description": "GitHub のスタック PR（下の PR の head を上の PR の base にして積む）を作る・保つ・マージするスキル。1 PR = 1 ストーリーで積んで本文に位置と Linear ID を書き、下から順に rebase で揃え、マージ前に全段の CI・mergeable・未解決スレッド・本文を確かめ、非同期マージ API（merge-async）でまとめて（または途中まで）マージする。",
+  "author": {
+    "name": "Ryu1240"
+  },
+  "repository": "https://github.com/Ryu1240/ryu-skills",
+  "license": "MIT",
+  "keywords": [
+    "pull-request",
+    "stacked-pr",
+    "github",
+    "linear",
+    "merge"
+  ]
+}

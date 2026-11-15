@@ -1,6 +1,6 @@
 {
   "name": "general-skills",
-  "description": "Claude Code 向けスキル集。スタック別の TDD ワークフロー自動化（Plan→Red→Green→Refactor→Commit を状態永続化しながらフェーズ単位で回し、Coverage Review と Test Optimize まで進める。Rails / Python / Vue / TS・Node / Go / Rust / モノレポ / 任意言語の 8 プラグイン）と、PR を実行順にツアー形式で解説する pr-tour。",
+  "description": "Claude Code 向けスキル集。スタック別の TDD ワークフロー自動化（Plan→Red→Green→Refactor→Commit を状態永続化しながらフェーズ単位で回し、Coverage Review と Test Optimize まで進める。Rails / Python / Vue / TS・Node / Go / Rust / モノレポ / 任意言語の 8 プラグイン）と、PR を実行順にツアー形式で解説する pr-tour、スタック PR を作る・保つ・マージする stacked-pr。",
   "owner": {
     "name": "Ryu1240"
   },
@@ -49,6 +49,11 @@
       "name": "pr-tour",
       "source": "./plugins/pr-tour",
       "description": "PR の差分をエントリーポイントから処理の流れに沿って案内するスキル（案内プランを保存してから 1 ステップずつ解説。テスト対応・code-review 並走・図解付き）"
+    },
+    {
+      "name": "stacked-pr",
+      "source": "./plugins/stacked-pr",
+      "description": "GitHub のスタック PR を作る・下から順に揃える・merge-async でまとめてマージするスキル（マージ前の全段確認・Linear 連携の注意付き）"
     }
   ]
 }
