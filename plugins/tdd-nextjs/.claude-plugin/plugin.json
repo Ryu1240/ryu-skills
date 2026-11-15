@@ -1,0 +1,8 @@
+{
+  "name": "tdd-nextjs",
+  "version": "0.1.0",
+  "description": "Next.js（App Router）+ React + TypeScript（Vitest + React Testing Library）向け TDD ワークフロー自動化スキル。Plan→Red→Green→Refactor→Commit→Coverage Review→Optimize を状態永続化しながら回す。Server Component のロジックを lib / hook に寄せてテストする方針、MSW・TanStack Query・Next.js のランタイム API のモックまで具体指示つき。E2E は範囲外。",
+  "author": {
+    "name": "Ryu1240"
+  }
+}

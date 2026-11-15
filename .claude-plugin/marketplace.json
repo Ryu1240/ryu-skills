@@ -1,6 +1,6 @@
 {
   "name": "general-skills",
-  "description": "Claude Code 向けスキル集。スタック別の TDD ワークフロー自動化（Plan→Red→Green→Refactor→Commit を状態永続化しながらフェーズ単位で回し、Coverage Review と Test Optimize まで進める。Rails / Python / Vue / TS・Node / Go / Rust / モノレポ / 任意言語の 8 プラグイン）と、PR を実行順にツアー形式で解説する pr-tour、スタック PR を作る・保つ・マージする stacked-pr。",
+  "description": "Claude Code 向けスキル集。スタック別の TDD ワークフロー自動化（Plan→Red→Green→Refactor→Commit を状態永続化しながらフェーズ単位で回し、Coverage Review と Test Optimize まで進める。Rails / Python / Vue / Next.js / TS・Node / Go / Rust / モノレポ / 任意言語の 9 プラグイン）と、PR を実行順にツアー形式で解説する pr-tour、スタック PR を作る・保つ・マージする stacked-pr。",
   "owner": {
     "name": "Ryu1240"
   },
@@ -19,6 +19,11 @@
       "name": "tdd-frontend",
       "source": "./plugins/tdd-frontend",
       "description": "Vue 3 + Vite + Vitest 向け TDD ワークフロー自動化スキル"
+    },
+    {
+      "name": "tdd-nextjs",
+      "source": "./plugins/tdd-nextjs",
+      "description": "Next.js（App Router）+ React + TypeScript（Vitest + React Testing Library）向け TDD ワークフロー自動化スキル"
     },
     {
       "name": "tdd-node",
